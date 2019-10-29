@@ -3,7 +3,7 @@
 #define doublepress_tolerance 800
 
 uint8_t k1_d = 0, k1_u = 0, k2_d = 0, k2_u = 0;
-uint8_t k1_d_t = 0, k1_u_t = 0, k2_d_t = 0, k2_u_t = 0;
+uint8_t k1_d_t = -100000, k1_u_t = -100000, k2_d_t = -100000, k2_u_t = -100000;
 
 
 // Return 1 if the key is currently in a pressed state
