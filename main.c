@@ -12,12 +12,12 @@ int main ( void )
 
     // Initialisierung aller Portleitungen und Schnittstellen
     // Freigabe von Interrupten
-    //init_board();
+    // init_board();
 
     // Start der RTC  falls diese noch
     // nicht initialisiert war wird
     // die RTC mit der LSE-Taktquelle aktiviert
-    //start_RTC();
+    // start_RTC();
 
     // Anmeldung beim WLAN Access Point
     // SSID: MPP_IoT
@@ -32,31 +32,21 @@ int main ( void )
     // Start des Betriebssystems CoOS
     //CoStartOS ();
 
-    init_leds();
+	// Beispiel für die Loesung einer Aufgabe
+
+    //init_PC09();
     init_tasten();
+    init_leds();
 
-    green_LED_ON;
-
-    int taste2_counter = 0;
     while (1)
     {
-    	//Aufgabe 01.03
-    	wait_mSek(500);
-    	green_LED_Toggle;
-
-    	//Aufgabe 01.07
-    	//if(taste2_downed()) taste2_counter++;
-
-    	//if(taste2_counter>1) {
-    	//	taste2_counter = 0;
-    	//	green_LED_Toggle;
-    	//}
-
-    	//if(taste1_downed()) green_LED_Toggle;
-
-    	//Aufgabe 1.04
-    	//wait_mSek(500);
-    	//if(taste1_pressed()==1) green_LED_Toggle;
-    	//green_LED_Toggle;
+    	if(taste1_downed()) {
+    		slowMode();
+    		green_LED_Toggle;
+    	}
+    	if(taste2_downed()) {
+    	    fastMode();
+    	    green_LED_Toggle;
+    	}
     }
 }

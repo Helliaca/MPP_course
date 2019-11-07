@@ -1,0 +1,42 @@
+A02-01.2
+
+int main (void) {    
+    SystemInit(); 
+    init_leds();
+    init_PC09();    
+    while (1)
+    {
+    	wait_mSek(1000);
+    	green_LED_Toggle;
+    }
+}
+
+A02-01.3
+int main (void) {    
+    // SystemInit(); 
+    init_leds();
+    init_PC09();    
+    while (1)
+    {
+    	wait_mSek(1000);
+    	green_LED_Toggle;
+    }
+}
+
+A02-01.4
+int main (void) {   
+    SystemInit();
+    
+    init_PC09();    //einmal auskommentiert und einmal nicht
+    init_tasten();
+
+    while (1)
+    {
+    	if(taste1_downed()) {
+    	    slowMode();
+    	}
+    	if(taste2_downed()) {
+    	    fastMode();
+    	}
+    }
+}
