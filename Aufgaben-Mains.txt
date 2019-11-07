@@ -40,3 +40,34 @@ int main (void) {
     	}
     }
 }
+
+A02-02.1 (aus interrupts.c)
+void SysTick_Handler(void) {
+	
+	...	
+
+	// LED zyklisch schalten
+	if( stc_led == 500 ) {
+		green_LED_OFF;
+	}
+	else if( stc_led == 3500 ) {
+		green_LED_ON;
+		stc_led = 0;
+	}
+}
+
+
+A02-02.2 (aus interrupts.c)
+void SysTick_Handler(void)
+{
+
+	static unsigned long stc_timer = 0;
+	stc_timer++;
+	...
+	//======================================================================
+	// stc_timer und timer aus interrupts.h aktualisieren
+	if(stc_timer > 99) {
+		timer--;
+		stc_timer = 0;
+	}
+}

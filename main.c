@@ -8,7 +8,7 @@ int main ( void )
     // SysTick initialisieren
     // jede Millisekunde erfolgt dann der Aufruf
     // des Handlers fuer den Interrupt SysTick_IRQn
-    //InitSysTick();
+    InitSysTick();
 
     // Initialisierung aller Portleitungen und Schnittstellen
     // Freigabe von Interrupten
@@ -40,13 +40,11 @@ int main ( void )
 
     while (1)
     {
-    	if(taste1_downed()) {
-    		slowMode();
-    		green_LED_Toggle;
-    	}
-    	if(taste2_downed()) {
-    	    fastMode();
-    	    green_LED_Toggle;
-    	}
+    	green_LED_ON;
+		timer=10;
+		while (timer){;}    // wartet 1 Sekunde
+		green_LED_OFF;
+		timer=100;
+		while (timer){;}    // wartet 10 Sekunden
     }
 }

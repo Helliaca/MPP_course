@@ -56,9 +56,11 @@ void DebugMon_Handler(void)
 void SysTick_Handler(void)
 {
 	static unsigned long stc_led = 0;
+	static unsigned long stc_timer = 0;
 	static unsigned long stc0 = 0;
 	static unsigned long stc1 = 0;
 	static unsigned long stc2 = 0;
+	stc_timer++;
 	stc_led++;
 	stc0++;
 	stc1++;
@@ -106,13 +108,24 @@ void SysTick_Handler(void)
 	// MQTT
 	MQTT_SysTickHandler();
 
+	/*
 	//======================================================================
 	// LED zyklisch schalten
-	if ( stc_led >= 500 )
-		{
-			LED_GR_TOGGLE;
-			stc_led = 0;
-		}
+	if( stc_led == 500 ) {
+		green_LED_OFF;
+	}
+	else if( stc_led == 3500 ) {
+		green_LED_ON;
+		stc_led = 0;
+	}
+	*/
+
+	//======================================================================
+	// stc_timer und timer aus interrupts.h aktualisieren
+	if(stc_timer > 99) {
+		timer--;
+		stc_timer = 0;
+	}
 }
 
 
