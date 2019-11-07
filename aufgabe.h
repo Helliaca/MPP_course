@@ -120,6 +120,7 @@ void RCC_WaitForPLLStartUp(void);
 void defaultMode();
 void slowMode(void);
 void fastMode(void);
+void init_usart_2_tx(void);
 
 //=========================================================================
 #endif

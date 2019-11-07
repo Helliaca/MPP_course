@@ -8,7 +8,7 @@ int main ( void )
     // SysTick initialisieren
     // jede Millisekunde erfolgt dann der Aufruf
     // des Handlers fuer den Interrupt SysTick_IRQn
-    InitSysTick();
+    // InitSysTick();
 
     // Initialisierung aller Portleitungen und Schnittstellen
     // Freigabe von Interrupten
@@ -37,14 +37,13 @@ int main ( void )
     //init_PC09();
     init_tasten();
     init_leds();
+    init_usart_2_tx();
 
+    char send = '0';
     while (1)
     {
-    	green_LED_ON;
-		timer=10;
-		while (timer){;}    // wartet 1 Sekunde
-		green_LED_OFF;
-		timer=100;
-		while (timer){;}    // wartet 10 Sekunden
+		USART_SendData(USART2, send);
+		while (USART_GetFlagStatus(USART2, USART_FLAG_TC) == RESET){}
+		if(++send>'9') send = '0';
     }
 }
