@@ -39,11 +39,12 @@ int main ( void )
     init_leds();
     init_usart_2_tx();
 
-    char send = '0';
+    char usart2_rx_buffer[50];
+    char * usart2_tx_buffer = "Hallo Welt \r\n";
+
     while (1)
     {
-		USART_SendData(USART2, send);
-		while (USART_GetFlagStatus(USART2, USART_FLAG_TC) == RESET){}
-		if(++send>'9') send = '0';
+        char * usart2_tx_buffer = "Hallo Welt \r\n";
+    	usart_2_print(usart2_tx_buffer);
     }
 }

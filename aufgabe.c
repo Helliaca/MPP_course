@@ -197,6 +197,7 @@ void fastMode(void) {
     RCC_SYSCLKConfig(RCC_SYSCLKSource_PLLCLK);
 }
 
+//A03-01.1
 //==== USART2 konfigurieren
 void init_usart_2_tx(void) {
 	GPIO_InitTypeDef GPIO_InitStructure;
@@ -238,6 +239,15 @@ void init_usart_2_tx(void) {
 	USART_Cmd(USART2, ENABLE); // enable USART2
 }
 
+//A03-01.2
+void usart_2_print(char * str_print) {
+	int i = 0;
+	for(i = 0;i < strlen(str_print);i++)
+	{
+		USART_SendData(USART2, str_print[i]);
+		while (USART_GetFlagStatus(USART2, USART_FLAG_TC) == RESET){}
+	}
+}
 
 
 

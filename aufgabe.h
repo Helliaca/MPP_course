@@ -121,6 +121,7 @@ void defaultMode();
 void slowMode(void);
 void fastMode(void);
 void init_usart_2_tx(void);
+void usart_2_print(char * str_print);
 
 //=========================================================================
 #endif
