@@ -154,3 +154,86 @@ void usart_2_print(char * str_print) {
 		while (USART_GetFlagStatus(USART2, USART_FLAG_TC) == RESET){}
 	}
 }
+
+A03-01.3
+int main ( void )
+{
+    // Initialisierung des Systems und des Clocksystems
+    SystemInit();
+
+    // SysTick initialisieren
+    // jede Millisekunde erfolgt dann der Aufruf
+    // des Handlers fuer den Interrupt SysTick_IRQn
+    InitSysTick();
+    init_tasten();
+    init_leds();
+    init_usart_2();
+
+    while (1)
+    {
+    	// warten bis ein Zeichen empfangen wurde
+    	while (USART_GetFlagStatus(USART2, USART_FLAG_RXNE) == RESET){}
+    	// Zeichen lesen und auf ein char casten
+    	char led_mode = (char) USART_ReceiveData(USART2);
+
+    	switch (led_mode) {
+			case '1':
+				blink_interval = 1000;
+				usart_2_print("Gruene LED im 1 Sekundentakt\r\n");
+				break;
+			case '2':
+				blink_interval = 2000;
+				usart_2_print("Gruene LED im 2 Sekundentakt\r\n");
+				break;
+			case '4':
+				blink_interval = 4000;
+				usart_2_print("Gruene LED im 4 Sekundentakt\r\n");
+				break;
+			default:
+				break;
+		}
+    }
+}
+
+void init_usart_2(void) {
+		GPIO_InitTypeDef GPIO_InitStructure;
+		USART_InitTypeDef USART_InitStructure;
+
+		// Taktsystem für die USART2 freigeben
+		RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
+
+		// GPIO Port A Taktsystem freigeben
+		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+
+		// USART2 TX an PA02 für Send und PA03 für receive mit Alternativfunktion Konfigurieren
+		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2 | GPIO_Pin_3;
+		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+		GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+		GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP ;
+		GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+		// USART2 TX mit PA2 verbinden
+		GPIO_PinAFConfig(GPIOA, GPIO_PinSource2, GPIO_AF_USART2);
+		GPIO_PinAFConfig(GPIOA, GPIO_PinSource3, GPIO_AF_USART2);
+		// Datenprotokoll der USART einstellen
+		/*
+		 * Hardware Flow Control nur, wenn mit einem Emfpänger aktiv kommuniziert wird über CTS (Clear to send)
+		 * RFR (Ready for Receiving, fälschlicherweise als RTS) Leitungen, die jede USART Unit bereit stellt.
+		 * Tx Transmission, Rx Receiving. USART muss mit PIN verbunden werden.
+		 */
+		USART_InitStructure.USART_BaudRate 				= 921600;
+		USART_InitStructure.USART_WordLength 			= USART_WordLength_8b;
+		USART_InitStructure.USART_StopBits 				= USART_StopBits_1;
+		USART_InitStructure.USART_Parity 				= USART_Parity_No;
+		USART_InitStructure.USART_HardwareFlowControl	= USART_HardwareFlowControl_None;
+		USART_InitStructure.USART_Mode 					= USART_Mode_Tx | USART_Mode_Rx;
+		USART_Init(USART2, &USART_InitStructure);
+
+		//USART_ITConfig(USART2, USART_IT_RXNE, ENABLE);
+		//NVIC_EnableIRQ(USART2_IRQn);
+
+		// USART2 freigeben
+		USART_Cmd(USART2, ENABLE); // enable USART2
+
+}

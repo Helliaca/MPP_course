@@ -133,6 +133,7 @@
 #define uart_send usart2_send
 
 //========== Variablen
+extern int32_t blink_interval;
 extern int32_t timer;
 extern int32_t Tas1;
 extern int32_t Tas2;

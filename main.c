@@ -8,7 +8,7 @@ int main ( void )
     // SysTick initialisieren
     // jede Millisekunde erfolgt dann der Aufruf
     // des Handlers fuer den Interrupt SysTick_IRQn
-    // InitSysTick();
+    InitSysTick();
 
     // Initialisierung aller Portleitungen und Schnittstellen
     // Freigabe von Interrupten
@@ -37,14 +37,30 @@ int main ( void )
     //init_PC09();
     init_tasten();
     init_leds();
-    init_usart_2_tx();
-
-    char usart2_rx_buffer[50];
-    char * usart2_tx_buffer = "Hallo Welt \r\n";
+    init_usart_2();
 
     while (1)
     {
-        char * usart2_tx_buffer = "Hallo Welt \r\n";
-    	usart_2_print(usart2_tx_buffer);
+    	// warten bis ein Zeichen empfangen wurde
+    	while (USART_GetFlagStatus(USART2, USART_FLAG_RXNE) == RESET){}
+    	// Zeichen lesen und auf ein char casten
+    	char led_mode = (char) USART_ReceiveData(USART2);
+
+    	switch (led_mode) {
+			case '1':
+				blink_interval = 1000;
+				usart_2_print("Gruene LED im 1 Sekundentakt\r\n");
+				break;
+			case '2':
+				blink_interval = 2000;
+				usart_2_print("Gruene LED im 2 Sekundentakt\r\n");
+				break;
+			case '4':
+				blink_interval = 4000;
+				usart_2_print("Gruene LED im 4 Sekundentakt\r\n");
+				break;
+			default:
+				break;
+		}
     }
 }

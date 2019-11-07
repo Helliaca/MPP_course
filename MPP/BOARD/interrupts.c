@@ -122,8 +122,8 @@ void SysTick_Handler(void)
 
 	//======================================================================
 	// stc_timer und timer aus interrupts.h aktualisieren
-	if(stc_timer > 99) {
-		timer--;
+	if(stc_timer > blink_interval-1) {
+		green_LED_Toggle;
 		stc_timer = 0;
 	}
 }
