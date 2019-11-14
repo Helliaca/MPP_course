@@ -9,7 +9,8 @@
 *.zip
 *.db
 *.cogui
-STM32F415RG/
+
+STM32F415RG/Debug/obj/
 
 # Prerequisites
 *.d
