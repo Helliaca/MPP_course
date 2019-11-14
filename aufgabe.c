@@ -293,6 +293,22 @@ void init_usart_2(void) {
 
 }
 
+//A04-01.1
+void init_iwdg(void) {
+	// Schreibrechte aktivieren
+	IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
+	// den Vorteiler (4, 8 , 16 ,..., 256) setzen
+	IWDG_SetPrescaler(IWDG_Prescaler_64);
+	// den Wert (0...4095) einstellen ab dem runtergez‰hlt wird
+	IWDG_SetReload(2500);
+	// setzt den Wachdog auf den eingestellten Maximalwert
+	IWDG_ReloadCounter();
+	// aktiviert dem IWDG
+	IWDG_Enable();
+	// Das Zeitintervall t berechnet sich folgendermaﬂen
+	// t = (1/32000) * 64 * 2500 = 5,30 Sekunden
+}
+
 
 
 

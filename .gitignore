@@ -10,7 +10,7 @@
 *.db
 *.cogui
 
-STM32F415RG/Debug/obj/
+STM32F415RG/Debug/
 
 # Prerequisites
 *.d

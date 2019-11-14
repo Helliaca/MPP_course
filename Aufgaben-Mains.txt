@@ -237,3 +237,37 @@ void init_usart_2(void) {
 		USART_Cmd(USART2, ENABLE); // enable USART2
 
 }
+
+A04-01.1
+int main(void) {
+...
+init_iwdg();
+    init_tasten();
+	init_usart_2();
+
+	char * usart_2_tx_neustart = "\r\nNeustart\r\n";
+	char * usart_2_tx_schleife = "Schleife\r\n";
+	char * usart_2_tx_taste = "Taste 2 gedrückt \r\n";
+
+	usart_2_print(usart_2_tx_neustart);
+
+	while(1) {
+		/*
+		 * Quelle: Datasheet Seite 101
+		 * LSI Frequenz kann zwischen 17 und 47kHz variieren.
+		 * Der Neustart erfolgt ungefähr nach 5,3s im Gegensatz zu der eigentlich spezifizierten
+		 * Countdown Time von 5s in den IWDG Einstellungen. Dies entspricht einer LSI-Frequenz
+		 * von crica 30kHz = (5,3s /(64*2500))^(-1).
+		 */
+		usart_2_print(usart_2_tx_schleife);
+		//wait for 0,5s um die Schleifendurchläufe zu verlangsamen
+		wait_uSek(500000);
+		IWDG_ReloadCounter();
+
+		if(taste2_downed()) {
+			usart_2_print(usart_2_tx_taste);
+			//wait for 4,8s
+			wait_uSek(4800000);
+		}
+	}
+}

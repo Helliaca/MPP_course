@@ -34,42 +34,33 @@ int main ( void )
 
 	// Beispiel für die Loesung einer Aufgabe
 
-    //init_PC09();
+    init_iwdg();
     init_tasten();
-	init_leds();
 	init_usart_2();
 
-	char usart2_rx_buffer[PUFFER_SIZE];
-	char usart2_tx_buffer[PUFFER_SIZE];
-	int str_len = 0;
+	char * usart_2_tx_neustart = "\r\nNeustart\r\n";
+	char * usart_2_tx_schleife = "Schleife\r\n";
+	char * usart_2_tx_taste = "Taste 2 gedrückt \r\n";
 
-	while (1)
-	{
-		// warten bis ein Zeichen empfangen wurde
-		while (USART_GetFlagStatus(USART2, USART_FLAG_RXNE) == RESET){}
-		// Zeichen lesen und auf ein char casten
-		char zeichen = (char) USART_ReceiveData(USART2);
-		if (str_len >= PUFFER_SIZE) {
-			str_len = 0;
-			char * error_msg = "Puffer size exceeded.\r\n";
-			usart_2_print(error_msg);
-		} else {
-			if(zeichen==0x0D) {
-				//Nullterminator an char Array
-				usart2_rx_buffer[str_len] = 0x00;
-				//Formattiere den zu sendenden String
-				sprintf(usart2_tx_buffer,"%s Laenge=%d \r\n",usart2_rx_buffer,str_len);
-				usart_2_print(usart2_tx_buffer);
-				//Setze Zeiger wieder an Anfang des char arrays
-				str_len = 0;
-				/*
-				 * bei der ersten Ausführung wird noch am Anfang des Strings ein '-' ausgegeben. ???
-				 */
+	usart_2_print(usart_2_tx_neustart);
 
-			} else {
-				usart2_rx_buffer[str_len] = zeichen;
-				str_len++;
-			}
+	while(1) {
+		/*
+		 * Quelle: Datasheet Seite 101
+		 * LSI Frequenz kann zwischen 17 und 47kHz variieren.
+		 * Der Neustart erfolgt ungefähr nach 5,3s im Gegensatz zu der eigentlich spezifizierten
+		 * Countdown Time von 5s in den IWDG Einstellungen. Dies entspricht einer LSI-Frequenz
+		 * von crica 30kHz = (5,3s /(64*2500))^(-1).
+		 */
+		usart_2_print(usart_2_tx_schleife);
+		//wait for 0,5s um die Schleifendurchläufe zu verlangsamen
+		wait_uSek(500000);
+		IWDG_ReloadCounter();
+
+		if(taste2_downed()) {
+			usart_2_print(usart_2_tx_taste);
+			//wait for 4,8s
+			wait_uSek(4800000);
 		}
 	}
 }
