@@ -36,31 +36,40 @@ int main ( void )
 
     //init_PC09();
     init_tasten();
-    init_leds();
-    init_usart_2();
+	init_leds();
+	init_usart_2();
 
-    while (1)
-    {
-    	// warten bis ein Zeichen empfangen wurde
-    	while (USART_GetFlagStatus(USART2, USART_FLAG_RXNE) == RESET){}
-    	// Zeichen lesen und auf ein char casten
-    	char led_mode = (char) USART_ReceiveData(USART2);
+	char usart2_rx_buffer[PUFFER_SIZE];
+	char usart2_tx_buffer[PUFFER_SIZE];
+	int str_len = 0;
 
-    	switch (led_mode) {
-			case '1':
-				blink_interval = 1000;
-				usart_2_print("Gruene LED im 1 Sekundentakt\r\n");
-				break;
-			case '2':
-				blink_interval = 2000;
-				usart_2_print("Gruene LED im 2 Sekundentakt\r\n");
-				break;
-			case '4':
-				blink_interval = 4000;
-				usart_2_print("Gruene LED im 4 Sekundentakt\r\n");
-				break;
-			default:
-				break;
+	while (1)
+	{
+		// warten bis ein Zeichen empfangen wurde
+		while (USART_GetFlagStatus(USART2, USART_FLAG_RXNE) == RESET){}
+		// Zeichen lesen und auf ein char casten
+		char zeichen = (char) USART_ReceiveData(USART2);
+		if (str_len >= PUFFER_SIZE) {
+			str_len = 0;
+			char * error_msg = "Puffer size exceeded.\r\n";
+			usart_2_print(error_msg);
+		} else {
+			if(zeichen==0x0D) {
+				//Nullterminator an char Array
+				usart2_rx_buffer[str_len] = 0x00;
+				//Formattiere den zu sendenden String
+				sprintf(usart2_tx_buffer,"%s Laenge=%d \r\n",usart2_rx_buffer,str_len);
+				usart_2_print(usart2_tx_buffer);
+				//Setze Zeiger wieder an Anfang des char arrays
+				str_len = 0;
+				/*
+				 * bei der ersten Ausführung wird noch am Anfang des Strings ein '-' ausgegeben. ???
+				 */
+
+			} else {
+				usart2_rx_buffer[str_len] = zeichen;
+				str_len++;
+			}
 		}
-    }
+	}
 }

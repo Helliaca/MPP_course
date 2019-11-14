@@ -98,6 +98,7 @@
 #define green_LED_ON        (GPIO_SetBits(GPIOB, GPIO_Pin_2))
 #define green_LED_OFF       (GPIO_ResetBits(GPIOB, GPIO_Pin_2))
 #define green_LED_Toggle    (GPIO_ToggleBits(GPIOB, GPIO_Pin_2))
+#define PUFFER_SIZE			50
 
 
 //=========================================================================
