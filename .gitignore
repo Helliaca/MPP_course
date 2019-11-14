@@ -1,3 +1,16 @@
+*.out
+*.o
+*.d
+*.lst
+*.map
+*.dep
+*.uvgui.*
+*.uvopt
+*.zip
+*.db
+*.cogui
+STM32F415RG/
+
 # Prerequisites
 *.d
 
