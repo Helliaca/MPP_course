@@ -8,7 +8,7 @@ int main ( void )
     // SysTick initialisieren
     // jede Millisekunde erfolgt dann der Aufruf
     // des Handlers fuer den Interrupt SysTick_IRQn
-    InitSysTick();
+    //InitSysTick();
 
     // Initialisierung aller Portleitungen und Schnittstellen
     // Freigabe von Interrupten
@@ -33,34 +33,53 @@ int main ( void )
     //CoStartOS ();
 
 	// Beispiel für die Loesung einer Aufgabe
+    unsigned char value_watchdog_counter = 0x7f;
+	unsigned char window_value = 0x50;
+	unsigned char window_value_refresh = 0x50;
+	unsigned char cnt_i = 0;
+	unsigned char cnt_j = 0;
+	char usart2_tx_buffer[PUFFER_SIZE];
 
-    init_iwdg();
-    init_tasten();
 	init_usart_2();
 
-	char * usart_2_tx_neustart = "\r\nNeustart\r\n";
-	char * usart_2_tx_schleife = "Schleife\r\n";
-	char * usart_2_tx_taste = "Taste 2 gedrückt \r\n";
+	sprintf(usart2_tx_buffer,"\r\nNeustart\r\n");
+	usart_2_print(usart2_tx_buffer);
 
-	usart_2_print(usart_2_tx_neustart);
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_WWDG, ENABLE);
 
-	while(1) {
+	WWDG_SetPrescaler(WWDG_Prescaler_8);
+	WWDG_SetWindowValue(window_value);
+	WWDG_Enable(value_watchdog_counter);
+
+	cnt_i = (unsigned char) (value_watchdog_counter + 1);
+
+	while(1){
+		//übernehme Bitsequenz aus WWDG_CR in ein Char bzw. schneide alles ab 8tem Bit ab
+		cnt_j = (unsigned char) ((WWDG->CR) & 0x7F) ;
+
 		/*
-		 * Quelle: Datasheet Seite 101
-		 * LSI Frequenz kann zwischen 17 und 47kHz variieren.
-		 * Der Neustart erfolgt ungefähr nach 5,3s im Gegensatz zu der eigentlich spezifizierten
-		 * Countdown Time von 5s in den IWDG Einstellungen. Dies entspricht einer LSI-Frequenz
-		 * von crica 30kHz = (5,3s /(64*2500))^(-1).
+		 * sofern j < i, gebe j aus. i nimmt den Wert an, den j im letzten Schleifendurchlauf hatte.
+		 * Also prüft er, ob es eine Veränderung des WWDG_CR Registers zwischen den Schleifendurchläufen gab.
+		 * Sobald im letzten Schleifendurchlauf der Wert des Refreshwindows erreicht wurde (in dem Fall 0x50),
+		 * wird WWDG_CR auf 0x7F resetteted und i := 0x7F +1.
 		 */
-		usart_2_print(usart_2_tx_schleife);
-		//wait for 0,5s um die Schleifendurchläufe zu verlangsamen
-		wait_uSek(500000);
-		IWDG_ReloadCounter();
+		if (cnt_j  < cnt_i ) {
 
-		if(taste2_downed()) {
-			usart_2_print(usart_2_tx_taste);
-			//wait for 4,8s
-			wait_uSek(4800000);
+			sprintf(usart2_tx_buffer,"i = %u\r\n",cnt_j);
+			usart_2_print(usart2_tx_buffer);
+
+
+			cnt_i = cnt_j;
+
+			if (cnt_i == window_value_refresh ) {
+
+				WWDG_SetCounter(value_watchdog_counter);
+
+				sprintf(usart2_tx_buffer,"####### neu geladen\r\n");
+				usart_2_print(usart2_tx_buffer);
+
+				cnt_i = (unsigned char) (value_watchdog_counter + 1);
+			}
 		}
 	}
 }
