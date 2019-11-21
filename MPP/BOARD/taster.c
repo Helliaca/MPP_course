@@ -60,11 +60,34 @@ void init_Taster1_IRQ8(void)
 }
 
 
-
+int taste1_counter = 0;
+int taste2_counter = 0;
+char msg[50];
 //=========================================================================
 void TASTER1_IRQ(void)
 //=========================================================================
 {
+	/*
+	 * taste1_counter wird bei jedem Drücken inkrementiert. Wurde die Taste 10 Mal betätigt,
+	 * wird die EXTI_Line disbabled. Dies ist am taste1_counter = -1 erkennbar.
+	 */
+	taste1_counter++;
+	if(taste1_counter>9) {
+		EXTI_InitTypeDef EXTI_InitStructure;
+
+		EXTI_InitStructure.EXTI_Line = EXTI_Line8;
+		EXTI_InitStructure.EXTI_LineCmd = DISABLE;
+
+		EXTI_Init(&EXTI_InitStructure);
+
+		taste1_counter = -1;
+	}
+
+	usart_2_print("==>Taster 1 gedrückt\r\n");
+	sprintf(msg, "Taste2_counter: %d\r\nTaste1_counter: %d\r\n", taste2_counter, taste1_counter);
+	usart_2_print(msg);
+
+
 	/*
 	usart2_send("==>Taster 1 gedrückt\r\n");
 	beep(1000,200,0);
@@ -132,12 +155,27 @@ void init_Taster2_IRQ5(void)
 }
 
 
-
 //=========================================================================
 void TASTER2_IRQ(void)
 //=========================================================================
 {
-	//usart2_send("==>Taster 2 gedrückt\r\n");
+	/*
+	 * taste2_counter wird nur inkrementiert, sobal die Line zu Taste 1 disabled ist.
+	 * Erreicht taste2_counter ==2 werden beide counter resetted und die Line wieder neu initialisiert.
+	 */
+	if(taste1_counter == -1){
+		taste2_counter++;
+		if (taste2_counter > 1) {
+			taste2_counter =0;
+			taste1_counter =0;
+			init_taste1_irq();
+		}
+	}
+
+	usart_2_print("==>Taster 2 gedrückt\r\n");
+	sprintf(msg, "Taste2_counter: %d\r\nTaste1_counter: %d\r\n", taste2_counter, taste1_counter);
+	usart_2_print(msg);
+
 
 	green_LED_OFF;
 

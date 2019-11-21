@@ -332,7 +332,7 @@ void init_taste1_irq() {
 	EXTI_InitStructure.EXTI_Line = EXTI_Line8;					// EXTI_Line zweisen
 	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;			// Interrupt Mode setzen
 	/* A wake-up event is simply a peripheral interrupt line that is not enabled as an interrupt within the NVIC. This allows a peripheral to signal the Cortex core to wake up and continue processing without  the  need  for  an  interrupt  service  routine. */
-	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;		// Triggerbedingung setzen: HL-Flanke
+	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;		// Triggerbedingung setzen: HL-Flanke
 	EXTI_InitStructure.EXTI_LineCmd = ENABLE;					// Interrupt erlauben
 
 	// Regiser aus dem Struct heraus setzen
@@ -385,7 +385,7 @@ void init_taste2_irq() {
 	EXTI_InitStructure.EXTI_Line = EXTI_Line5;					// EXTI_Line zweisen
 	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;			// Interrupt Mode setzen
 	/* A wake-up event is simply a peripheral interrupt line that is not enabled as an interrupt within the NVIC. This allows a peripheral to signal the Cortex core to wake up and continue processing without  the  need  for  an  interrupt  service  routine. */
-	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;		// Triggerbedingung setzen: HL-Flanke
+	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;		// Triggerbedingung setzen: HL-Flanke
 	EXTI_InitStructure.EXTI_LineCmd = ENABLE;					// Interrupt erlauben
 
 	// Regiser aus dem Struct heraus setzen

@@ -37,8 +37,10 @@ int main ( void )
     init_tasten();
     init_taste1_irq();
     init_taste2_irq();
+    init_usart_2();
 
     green_LED_OFF;
+
 
     while(1) {
 
