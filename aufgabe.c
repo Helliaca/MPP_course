@@ -33,7 +33,7 @@ void init_tasten() {
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5 | GPIO_Pin_8;
 
 	GPIO_InitStructure.GPIO_Mode =  GPIO_Mode_IN;       //GPIO Input Mode
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_25MHz;   //Medium speed
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;   //Medium speed
 	//GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;      //PushPull
 	GPIO_InitStructure.GPIO_PuPd =  GPIO_PuPd_NOPULL;   //PullUp
 
@@ -310,5 +310,111 @@ void init_iwdg(void) {
 }
 
 
+//A05-01.01
+void init_taste1_irq() {
+	// vor Aufruf der Funktion gilt es init_tasten() aufzurufen
+	// Taste 1 liegt am PC8 Pin (gedrückt-0,nicht gedrückt-1)
+
+	/*
+	 * nicht gedrückt =1 (High)-> gedrückt =0 (Low) entspricht einer HL-Flanke als Trigger Bedingung
+	 */
+
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
+
+	//==========================================================
+	//========= Interrupt Konfiguration
+	//==========================================================
+	// Bindet Port C Leitung 8 an die EXTI_Line8 Leitung
+	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOC, EXTI_PinSource8);
+
+	// Struct anlegen
+	EXTI_InitTypeDef EXTI_InitStructure;
+	EXTI_InitStructure.EXTI_Line = EXTI_Line8;					// EXTI_Line zweisen
+	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;			// Interrupt Mode setzen
+	/* A wake-up event is simply a peripheral interrupt line that is not enabled as an interrupt within the NVIC. This allows a peripheral to signal the Cortex core to wake up and continue processing without  the  need  for  an  interrupt  service  routine. */
+	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;		// Triggerbedingung setzen: HL-Flanke
+	EXTI_InitStructure.EXTI_LineCmd = ENABLE;					// Interrupt erlauben
+
+	// Regiser aus dem Struct heraus setzen
+	EXTI_Init(&EXTI_InitStructure);
+
+
+	//==========================================================
+	//========= Interruptcontroller Konfiguration
+	//==========================================================
+
+	// Anlegen eines NVIC Struct
+	NVIC_InitTypeDef NVIC_InitStructure;
+	NVIC_InitStructure.NVIC_IRQChannel = EXTI9_5_IRQn;			// Festlegung der Interruptquelle
+
+	// Festlegung der Priorität entweder in 5 Gruppen
+	//======================================================
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);				// NVIC_PriorityGroup_0 hohe Priorität - NVIC_PriorityGroup_4 niedrige Priorität
+	//======================================================
+
+	// oder feiner gegliedert in Priorität und Subpriorität
+	//======================================================
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;	// 0..15
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;			// 0..15
+	//======================================================
+
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;				// Interruptkanal Freigabe
+
+	// Register aus dem Struct heraus schreiben
+	NVIC_Init(&NVIC_InitStructure);
+}
+
+void init_taste2_irq() {
+	// vor Aufruf der Funktion gilt es init_tasten() aufzurufen
+	// Taste 2 liegt am PC5 Pin (gedrückt-1,nicht gedrückt-0)
+
+	/*
+	 * nicht gedrückt =0 (LOW)-> gedrückt =1 (HIGH) entspricht einer LH-Flanke als Trigger Bedingung
+	 */
+
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
+
+	//==========================================================
+	//========= Interrupt Konfiguration
+	//==========================================================
+	// Bindet Port C Leitung 5 an die EXTI_Line8 Leitung
+	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOC, EXTI_PinSource5);
+
+	// Struct anlegen
+	EXTI_InitTypeDef EXTI_InitStructure;
+	EXTI_InitStructure.EXTI_Line = EXTI_Line5;					// EXTI_Line zweisen
+	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;			// Interrupt Mode setzen
+	/* A wake-up event is simply a peripheral interrupt line that is not enabled as an interrupt within the NVIC. This allows a peripheral to signal the Cortex core to wake up and continue processing without  the  need  for  an  interrupt  service  routine. */
+	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;		// Triggerbedingung setzen: HL-Flanke
+	EXTI_InitStructure.EXTI_LineCmd = ENABLE;					// Interrupt erlauben
+
+	// Regiser aus dem Struct heraus setzen
+	EXTI_Init(&EXTI_InitStructure);
+
+
+	//==========================================================
+	//========= Interruptcontroller Konfiguration
+	//==========================================================
+
+	// Anlegen eines NVIC Struct
+	NVIC_InitTypeDef NVIC_InitStructure;
+	NVIC_InitStructure.NVIC_IRQChannel = EXTI9_5_IRQn;			// Festlegung der Interruptquelle
+
+	// Festlegung der Priorität entweder in 5 Gruppen
+	//======================================================
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);				// NVIC_PriorityGroup_0 hohe Priorität - NVIC_PriorityGroup_4 niedrige Priorität
+	//======================================================
+
+	// oder feiner gegliedert in Priorität und Subpriorität
+	//======================================================
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;	// 0..15
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;			// 0..15
+	//======================================================
+
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;				// Interruptkanal Freigabe
+
+	// Register aus dem Struct heraus schreiben
+	NVIC_Init(&NVIC_InitStructure);
+}
 
 

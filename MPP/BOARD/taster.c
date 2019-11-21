@@ -65,10 +65,11 @@ void init_Taster1_IRQ8(void)
 void TASTER1_IRQ(void)
 //=========================================================================
 {
-
+	/*
 	usart2_send("==>Taster 1 gedrückt\r\n");
 	beep(1000,200,0);
-
+	*/
+	green_LED_ON;
 
 	//	while(!(GPIO_ReadOutputDataBit(GPIOC, GPIO_Pin_8)))
 	// {
@@ -136,7 +137,9 @@ void init_Taster2_IRQ5(void)
 void TASTER2_IRQ(void)
 //=========================================================================
 {
-	usart2_send("==>Taster 2 gedrückt\r\n");
+	//usart2_send("==>Taster 2 gedrückt\r\n");
+
+	green_LED_OFF;
 
 	//	beep(4000,200,200);
 //	beep(4000,200,200);

@@ -125,6 +125,9 @@ void init_usart_2_tx(void);
 void usart_2_print(char * str_print);
 void init_usart_2(void);
 void init_iwdg(void);
+void init_taste1_irq(void);
+void init_taste2_irq(void);
+
 
 //=========================================================================
 #endif
