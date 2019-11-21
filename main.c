@@ -33,8 +33,36 @@ int main ( void )
     //CoStartOS ();
 
 	// Beispiel für die Loesung einer Aufgabe
+
+    /*
+     * value_watchdog_counter gibt den Initialwert des Down-Counters an.
+     * window_value ist der Wert, ab welchem (inklusive) refresht werden darf bis
+     * 0x3F (exklusive). Der letzte Wert ist fix implementiert. Erreicht der Down-
+     * Counter ihn, wird ein Reset durchgeführt.
+     * window_value_refresh gibt den von uns gewählten Zeitpunkt/Wert an, an welchem
+     * der Down-Counter auf den Initialwert refresht wird.
+     * Ein Reset des Down-Counters vor dem window_value, d.h. im verbotenen Bereich,
+     * führt ebenfalls zum Reset.
+     *
+     * vwc > wv > wvr > 3f => endloser Refresh
+     * vwc > wv = wvr > 3f => endloser Refresh
+     * vwc > wvr > wv > 3f => Reset
+     * vwc > wv > wvr = 3f => Reset
+     * vwc = wv > wvr > 3f => endloser Refresh
+     *
+     * Bemerkung zur Grafik:
+     * WDGA ist das Windowed WatchDog Enable Bit bzw. MSB (most-significat-bit) im Down-Counter (WWDG_CR).  (T7 bit)
+     * Write WDGA_CR sit eine Flag, dass WWDG_CR refresht bzw. beschrieben wurde.
+     * Comparator: 1 wenn imv erbotenem Bereich, sonst 0
+     * Erster AND gate: "Wenn im verbotenem Bereich gerefresht wurde => Reset
+     * OR gate: sobald 3f (T6=0) erreicht wird oder siehe oben => Reset
+     * 2nd AND gate: WDGA = 1 bzw. WWDG enabled
+     *
+     * Mögliche Einsatzszenarien:
+     *  - Anwendungen bei den zu frühe Antworten nicht möglich sind
+     */
     unsigned char value_watchdog_counter = 0x7f;
-	unsigned char window_value = 0x50;
+    unsigned char window_value = 0x40;
 	unsigned char window_value_refresh = 0x50;
 	unsigned char cnt_i = 0;
 	unsigned char cnt_j = 0;
