@@ -1,0 +1,34 @@
+
+start_RTC(); //Siehe zusatzmaterial
+
+// Anlegen der Structs für aktuelle Daten
+RTC_TimeTypeDef  RTC_Time_Aktuell;      //  Zeit
+RTC_DateTypeDef  RTC_Date_Aktuell;      //  Datum
+
+while(1) {
+  waitmSek(1000);
+   
+  char data[50] = {0};
+   
+  RTC_GetDate(RTC_Format_BIN, &RTC_Date_Aktuell);
+  RTC_GetTime(RTC_Format_BIN, &RTC_Time_Aktuell);
+  
+  sprintf(data,
+    "\r\nDATE: %.2d-%.2d-%.2d-%.2d",
+    RTC_Date_Aktuell.RTC_Year,
+    RTC_Date_Aktuell.RTC_Month,
+    RTC_Date_Aktuell.RTC_Date,
+    RTC_Date_Aktuell.RTC_WeekDay
+  );
+  uart_send(data);
+
+  
+  sprintf(data,
+    "\r\nTIME: %.2d:%.2d:%.2d:%.2d",
+    RTC_Time_Aktuell.RTC_Hours, 
+    RTC_Time_Aktuell.RTC_Minutes, 
+    RTC_Time_Aktuell.RTC_Seconds, 
+    RTC_Time_Aktuell.RTC_H12
+  );
+  uart_send(data);  
+}
