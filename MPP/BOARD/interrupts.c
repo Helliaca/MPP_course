@@ -122,7 +122,7 @@ void SysTick_Handler(void)
 
 	//======================================================================
 	// stc_timer und timer aus interrupts.h aktualisieren
-	if(stc_timer > blink_interval-1) {
+	if(stc_timer > blink_interval-1 && blink_interval > -1) {
 		green_LED_Toggle;
 		stc_timer = 0;
 	}
@@ -360,6 +360,20 @@ void ADC_IRQHandler(void)
 //=========================================================================
 void USART2_IRQHandler(void)
 {
+	char zeichen;
+	// RxD - Empfangsinterrupt
+	if (USART_GetITStatus(USART2, USART_IT_RXNE) != RESET)
+	{
+		zeichen = (char)USART_ReceiveData(USART2);
+
+		if(zeichen=='1') blink_interval = 1000;
+		else if(zeichen=='4') blink_interval = 4000;
+		else if(zeichen=='s') {
+			green_LED_OFF;
+			blink_interval = -1;
+		}
+	}
+
 	//===== USART2
 	//UART2_IRQHandler();
 	//USART2_IRQ();
