@@ -1,4 +1,5 @@
 #include "interrupts.h"
+#include <inttypes.h>
 
 void hard_fault_handler_c(unsigned int * hardfault_args);
 
@@ -122,8 +123,14 @@ void SysTick_Handler(void)
 
 	//======================================================================
 	// stc_timer und timer aus interrupts.h aktualisieren
+	/*
 	if(stc_timer > blink_interval-1 && blink_interval > -1) {
 		green_LED_Toggle;
+		stc_timer = 0;
+	}
+	*/
+	if(stc_timer > 99) {
+		timer--;
 		stc_timer = 0;
 	}
 }
@@ -356,6 +363,24 @@ void ADC_IRQHandler(void)
 		}
 }
 
+void process(char* data) {
+	RTC_TimeTypeDef  RTC_Time_Aktuell;
+	int success = sscanf(data,
+		"time %" SCNu8 ":%" SCNu8 ":%" SCNu8 ":%" SCNu8 "",
+		&RTC_Time_Aktuell.RTC_Hours,
+		&RTC_Time_Aktuell.RTC_Minutes,
+		&RTC_Time_Aktuell.RTC_Seconds,
+		&RTC_Time_Aktuell.RTC_H12
+	);
+
+	if (success == 4) {
+		RTC_SetTime(RTC_Format_BIN, &RTC_Time_Aktuell);
+		usart_2_print("\r\n=====SUCCESSFULLY CHANGED TIME=====");
+	} else {usart_2_print("\r\nERROR"); usart_2_print(data);}
+	//TODO: Analog mit Date
+
+}
+
 char usart2_rx_buffer[PUFFER_SIZE] = {0};
 char usart2_tx_buffer[PUFFER_SIZE] = {0};
 int str_len = 0;
@@ -375,9 +400,7 @@ void USART2_IRQHandler(void)
 			if(zeichen==0x0D) {
 				//Nullterminator an char Array
 				usart2_rx_buffer[str_len] = 0x00;
-				//Formattiere den zu sendenden String
-				sprintf(usart2_tx_buffer,"%s Laenge=%d \r\n",usart2_rx_buffer,str_len);
-				usart_2_print(usart2_tx_buffer);
+				process(usart2_rx_buffer);
 				//Setze Zeiger wieder an Anfang des char arrays
 				str_len = 0;
 				/*
