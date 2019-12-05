@@ -8,11 +8,11 @@ int main ( void )
     // SysTick initialisieren
     // jede Millisekunde erfolgt dann der Aufruf
     // des Handlers fuer den Interrupt SysTick_IRQn
-    InitSysTick();
+    //InitSysTick();
 
     // blink_interval wird win SysTickHandler verwendet und
     // spezifiziert das Blink-Intervall in ms. -1 entspricht "Nicht Blinken".
-    blink_interval = -1;
+    //blink_interval = -1;
 
     // Initialisierung aller Portleitungen und Schnittstellen
     // Freigabe von Interrupten
@@ -37,11 +37,11 @@ int main ( void )
     //CoStartOS ();
 
 	// Beispiel für die Loesung einer Aufgabe
-    init_leds();
+    //init_leds();
     init_usart_2();
     init_usart_2_irq();
 
-    green_LED_OFF;
+    //green_LED_OFF;
 
 
     while(1) {
