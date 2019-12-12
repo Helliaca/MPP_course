@@ -39,36 +39,10 @@ int main ( void )
 	// Beispiel für die Loesung einer Aufgabe
     init_usart_2();
     init_usart_2_irq();
-
-    // Anlegen der Structs für aktuelle Daten
-    RTC_TimeTypeDef  RTC_Time_Aktuell;      //  Zeit
-    RTC_DateTypeDef  RTC_Date_Aktuell;      //  Datum
+    init_alarm2();
 
     while(1) {
 		wait_mSek(1000);
-
-		char data[50] = {0};
-
-		RTC_GetDate(RTC_Format_BIN, &RTC_Date_Aktuell);
-		RTC_GetTime(RTC_Format_BIN, &RTC_Time_Aktuell);
-
-		sprintf(data,
-			"\r\nDATE: %.2d-%.2d-%.2d-%.2d",
-			RTC_Date_Aktuell.RTC_Year,
-			RTC_Date_Aktuell.RTC_Month,
-			RTC_Date_Aktuell.RTC_Date,
-			RTC_Date_Aktuell.RTC_WeekDay
-		);
-		usart_2_print(data);
-
-
-		sprintf(data,
-			"\r\nTIME: %.2d:%.2d:%.2d:%.2d",
-			RTC_Time_Aktuell.RTC_Hours,
-			RTC_Time_Aktuell.RTC_Minutes,
-			RTC_Time_Aktuell.RTC_Seconds,
-			RTC_Time_Aktuell.RTC_H12
-		);
-		usart_2_print(data);
+		usart_2_print(".");
     }
 }

@@ -128,7 +128,6 @@ void init_iwdg(void);
 void init_taste1_irq(void);
 void init_taste2_irq(void);
 void init_usart_2_irq(void);
-void init_alarm_IRQ(void);
 void init_alarm1(void);
 void init_alarm2(void);
 

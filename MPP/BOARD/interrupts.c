@@ -330,7 +330,7 @@ void RTC_Alarm_IRQHandler(void)
 		{
 			RTC_ClearITPendingBit(RTC_IT_ALRA);
 			EXTI_ClearITPendingBit(EXTI_Line17);
-			green_LED_Toggle;
+			usart_2_print("\r\n Alarm a klingeling");
 			//	if (RTC_Alarm_CallBack[0] != NULL)
 			//	{
 			//	RTC_Alarm_CallBack[0]();
