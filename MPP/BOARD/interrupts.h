@@ -140,6 +140,8 @@ extern int32_t Tas2;
 extern int16_t T1;
 extern int16_t T2;
 extern char tasten[50];
+RTC_TimeTypeDef  RTC_Time_IN;
+RTC_DateTypeDef  RTC_Date_IN;
 
 //========== Funktionen
 

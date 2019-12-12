@@ -48,7 +48,6 @@
 
 //========== Variablen
 extern char uart2_RX_zeichen;
-
 //========== Funktionen
 
 void usart2_init(void);

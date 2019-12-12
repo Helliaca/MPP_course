@@ -330,6 +330,7 @@ void RTC_Alarm_IRQHandler(void)
 		{
 			RTC_ClearITPendingBit(RTC_IT_ALRA);
 			EXTI_ClearITPendingBit(EXTI_Line17);
+			green_LED_Toggle;
 			//	if (RTC_Alarm_CallBack[0] != NULL)
 			//	{
 			//	RTC_Alarm_CallBack[0]();
@@ -364,21 +365,48 @@ void ADC_IRQHandler(void)
 }
 
 void process(char* data) {
-	RTC_TimeTypeDef  RTC_Time_Aktuell;
-	int success = sscanf(data,
-		"time %" SCNu8 ":%" SCNu8 ":%" SCNu8 ":%" SCNu8 "",
-		&RTC_Time_Aktuell.RTC_Hours,
-		&RTC_Time_Aktuell.RTC_Minutes,
-		&RTC_Time_Aktuell.RTC_Seconds,
-		&RTC_Time_Aktuell.RTC_H12
-	);
+	RTC_DateStructInit(&RTC_Date_IN);
+	RTC_TimeStructInit(&RTC_Time_IN);
+	int success, error;
+	switch(data[0]) {
+		case 't': {
+			int hh, mm, s, h12;
+			success = sscanf(data,"time %d:%d:%d:%d", &hh, &mm, &s, &h12);
 
-	if (success == 4) {
-		RTC_SetTime(RTC_Format_BIN, &RTC_Time_Aktuell);
-		usart_2_print("\r\n=====SUCCESSFULLY CHANGED TIME=====");
-	} else {usart_2_print("\r\nERROR"); usart_2_print(data);}
-	//TODO: Analog mit Date
+			RTC_Time_IN.RTC_Hours		= hh;
+			RTC_Time_IN.RTC_Minutes 	= mm;
+			RTC_Time_IN.RTC_Seconds 	= s;
+			RTC_Time_IN.RTC_H12 		= h12;
 
+			if (success == 4 && 1 == RTC_SetTime(RTC_Format_BIN, &RTC_Time_IN)) {
+				usart_2_print("\r\n=====SUCCESSFULLY CHANGED TIME=====");
+			} else {error =1;}
+			break;
+		}
+		case 'd': {
+			int ye, mo, da, wd;
+			success = sscanf(data,"date %d-%d-%d-%d", &ye, &mo, &da, &wd);
+
+			RTC_Date_IN.RTC_Year        = ye;
+			RTC_Date_IN.RTC_Month       = mo;
+			RTC_Date_IN.RTC_Date        = da;
+			RTC_Date_IN.RTC_WeekDay     = wd;
+
+			if (success == 4 && 1 == RTC_SetDate(RTC_Format_BIN, &RTC_Date_IN)) {
+				usart_2_print("\r\n=====SUCCESSFULLY CHANGED DATE=====");
+			} else {error =1;}
+			break;
+		}
+		default : {
+			error = 1;
+			break;
+		}
+	}
+
+	if (error == 1) {
+		usart_2_print("\r\nERROR: INPUT STRING ");
+		usart_2_print(data);
+	}
 }
 
 char usart2_rx_buffer[PUFFER_SIZE] = {0};

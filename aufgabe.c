@@ -417,6 +417,8 @@ void init_taste2_irq() {
 	NVIC_Init(&NVIC_InitStructure);
 }
 
+
+
 //A05-02.1
 void init_usart_2_irq(void) {
 	NVIC_InitTypeDef NVIC_InitStructure;
@@ -430,5 +432,138 @@ void init_usart_2_irq(void) {
 	// Die Freigabe des zugehörigen Interrupts sieht wie fogt aus:
 	USART_ClearITPendingBit(USART2, USART_IT_RXNE);
 	USART_ITConfig(USART2, USART_IT_RXNE, ENABLE);
+
+}
+
+//A06-02.1
+void init_alarm_IRQ(void) {
+
+	// RTC Alarm A Interruptkonfiguration
+
+	// Anlegen der benötigten Structs
+	EXTI_InitTypeDef EXTI_InitStructure;
+	NVIC_InitTypeDef NVIC_InitStructure;
+
+	// EXTI-Line Konfiguration
+	EXTI_ClearITPendingBit(EXTI_Line17);
+	EXTI_InitStructure.EXTI_Line = EXTI_Line17;
+	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;
+	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+	EXTI_Init(&EXTI_InitStructure);
+
+	// NIVC Konfiguration
+	NVIC_InitStructure.NVIC_IRQChannel = RTC_Alarm_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
+
+	// Konfigurieren des Alarm A
+	RTC_ITConfig(RTC_IT_ALRA, ENABLE);
+
+	// RTC Alarm A freigeben
+	RTC_AlarmCmd(RTC_Alarm_A, ENABLE);
+
+	// Alarmflag löschen
+	RTC_ClearFlag(RTC_FLAG_ALRAF);
+
+}
+
+void init_alarm1(void) {
+
+	RTC_AlarmCmd(RTC_Alarm_A, DISABLE);
+
+	// Am 1. Tag jeden Monats um 06:30:00 soll ein Alarm A ausgelöst werden
+
+	RTC_AlarmTypeDef RTC_Alarm_Struct;
+
+	// Alarmzeit setzen..
+	//RTC_Alarm_Struct.RTC_AlarmTime.RTC_H12      = RTC_H12_AM;
+	//RTC_Alarm_Struct.RTC_AlarmTime.RTC_Hours    = 0x06;
+	//RTC_Alarm_Struct.RTC_AlarmTime.RTC_Minutes  = 0x30;
+	RTC_Alarm_Struct.RTC_AlarmTime.RTC_Seconds  = 0x30;
+
+	// Alarmmaske setzen (kann auch verodert werden)
+	RTC_Alarm_Struct.RTC_AlarmMask          =
+	                                        // RTC_AlarmMask_None;          // alle Felder werden verglichen
+	                                         RTC_AlarmMask_DateWeekDay   // Wochentag oder Tag ausgeblendet
+	                                        | RTC_AlarmMask_Hours         // Stunde ausgeblendet
+	                                        | RTC_AlarmMask_Minutes;       // Minute ausgeblendet
+	                                        // RTC_AlarmMask_Seconds;       // Sekunde ausgeblendet
+	                                        // RTC_AlarmMask_All;           // Alarm jede Sekunde
+
+	// Alarm für den Tag oder Wochentag auswählen
+	//RTC_Alarm_Struct.RTC_AlarmDateWeekDaySel = RTC_AlarmDateWeekDaySel_Date;     // Tag (1-31)
+	                                         // RTC_AlarmDateWeekDaySel_WeekDay; // Wochentag (Mo-So)
+
+	// Alarm Tag oder Wochentag setzen
+	//RTC_Alarm_Struct.RTC_AlarmDateWeekDay    = 0x01;                     // Tag 0x01...0x31
+	                                         // RTC_Weekday_Monday;      // Wochentag Mo
+	                                         // RTC_Weekday_Tuesday;     // Wochentag Di
+	                                         // RTC_Weekday_Wednesday;   // Wochentag Mi
+	                                         // RTC_Weekday_Thursday;    // Wochentag Do
+	                                         // RTC_Weekday_Friday;      // Wochentag Fr
+	                                         // RTC_Weekday_Saturday;    // Wochentag Sa
+	                                         // RTC_Weekday_Sunday;      // Wochentag So
+
+	// Konfiguration von Alarm A
+	RTC_SetAlarm(RTC_Format_BCD, RTC_Alarm_A, &RTC_Alarm_Struct);
+
+	// Hier muß noch die Initialisierung und Freigabe des Interrupts
+	// eingefügt werden
+
+	// Die zutreffende ISR muß auch bereitgestellt worden sein
+
+	RTC_AlarmCmd(RTC_Alarm_A, DISABLE);
+
+}
+
+void init_alarm2(void) {
+
+	RTC_AlarmCmd(RTC_Alarm_A, DISABLE);
+
+	// Am 1. Tag jeden Monats um 06:30:00 soll ein Alarm A ausgelöst werden
+
+	RTC_AlarmTypeDef RTC_Alarm_Struct;
+
+	// Alarmzeit setzen..
+	//RTC_Alarm_Struct.RTC_AlarmTime.RTC_H12      = RTC_H12_AM;
+	//RTC_Alarm_Struct.RTC_AlarmTime.RTC_Hours    = 0x06;
+	//RTC_Alarm_Struct.RTC_AlarmTime.RTC_Minutes  = 0x30;
+	RTC_Alarm_Struct.RTC_AlarmTime.RTC_Seconds  = 0x30;
+
+	// Alarmmaske setzen (kann auch verodert werden)
+	RTC_Alarm_Struct.RTC_AlarmMask          =
+	                                        // RTC_AlarmMask_None;          // alle Felder werden verglichen
+	                                         RTC_AlarmMask_DateWeekDay   // Wochentag oder Tag ausgeblendet
+	                                        | RTC_AlarmMask_Hours         // Stunde ausgeblendet
+	                                        | RTC_AlarmMask_Minutes;       // Minute ausgeblendet
+	                                        // RTC_AlarmMask_Seconds;       // Sekunde ausgeblendet
+	                                        // RTC_AlarmMask_All;           // Alarm jede Sekunde
+
+	// Alarm für den Tag oder Wochentag auswählen
+	//RTC_Alarm_Struct.RTC_AlarmDateWeekDaySel = RTC_AlarmDateWeekDaySel_Date;     // Tag (1-31)
+	                                         // RTC_AlarmDateWeekDaySel_WeekDay; // Wochentag (Mo-So)
+
+	// Alarm Tag oder Wochentag setzen
+	//RTC_Alarm_Struct.RTC_AlarmDateWeekDay    = 0x01;                     // Tag 0x01...0x31
+	                                         // RTC_Weekday_Monday;      // Wochentag Mo
+	                                         // RTC_Weekday_Tuesday;     // Wochentag Di
+	                                         // RTC_Weekday_Wednesday;   // Wochentag Mi
+	                                         // RTC_Weekday_Thursday;    // Wochentag Do
+	                                         // RTC_Weekday_Friday;      // Wochentag Fr
+	                                         // RTC_Weekday_Saturday;    // Wochentag Sa
+	                                         // RTC_Weekday_Sunday;      // Wochentag So
+
+	// Konfiguration von Alarm A
+	RTC_SetAlarm(RTC_Format_BCD, RTC_Alarm_A, &RTC_Alarm_Struct);
+
+	// Hier muß noch die Initialisierung und Freigabe des Interrupts
+	// eingefügt werden
+
+	// Die zutreffende ISR muß auch bereitgestellt worden sein
+
+	RTC_AlarmCmd(RTC_Alarm_A, DISABLE);
 
 }
