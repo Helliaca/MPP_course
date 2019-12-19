@@ -41,7 +41,7 @@ int main ( void )
     init_usart_2();
     //init_usart_2_irq();
 
-    init_alarm_every_sec(0x05, 1);
+    init_alarm_every_sec(5, 1);
 
     green_LED_ON;
     while(1) {

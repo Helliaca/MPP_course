@@ -331,7 +331,7 @@ void RTC_Alarm_IRQHandler(void)
 			EXTI_ClearITPendingBit(EXTI_Line17);
 			// Ab dem zweiten mal wird keine Interrupt ausgeführt. (init ist überföülüssig)
 			usart_2_print("Interrupt!");
-			init_alarm_every_sec(0x05, 0);
+			init_alarm_every_sec(5, 0);
 			green_LED_Toggle;
 			//	if (RTC_Alarm_CallBack[0] != NULL)
 			//	{

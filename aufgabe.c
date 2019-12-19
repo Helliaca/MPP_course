@@ -556,9 +556,7 @@ void init_alarm_every_sec(int delta, int init) {
 	RTC_TimeTypeDef  RTC_Time_Aktuell;
 	RTC_GetTime(RTC_Format_BIN, &RTC_Time_Aktuell);
 
-	RTC_Alarm_Struct.RTC_AlarmTime.RTC_Hours = RTC_Time_Aktuell.RTC_Hours;
-	RTC_Alarm_Struct.RTC_AlarmTime.RTC_Minutes = RTC_Time_Aktuell.RTC_Minutes;
-	RTC_Alarm_Struct.RTC_AlarmTime.RTC_Seconds = (RTC_Time_Aktuell.RTC_Seconds + delta);
+	RTC_Alarm_Struct.RTC_AlarmTime.RTC_Seconds = (RTC_Time_Aktuell.RTC_Seconds + delta)%60;
 
 	// Alarmmaske setzen (kann auch verodert werden)
 	RTC_Alarm_Struct.RTC_AlarmMask          = RTC_AlarmMask_DateWeekDay   // Wochentag oder Tag ausgeblendet
