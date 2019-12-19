@@ -131,6 +131,7 @@ void init_usart_2_irq(void);
 void init_alarm1(void);
 void init_alarm2(void);
 void init_alarm_every_sec(int, int);
+void init_RTC_wakeup_timer(uint16_t sec);
 
 
 //=========================================================================

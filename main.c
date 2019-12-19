@@ -21,7 +21,7 @@ int main ( void )
     // Start der RTC  falls diese noch
     // nicht initialisiert war wird
     // die RTC mit der LSE-Taktquelle aktiviert
-    //start_RTC();
+    start_RTC();
 
     // Anmeldung beim WLAN Access Point
     // SSID: MPP_IoT
@@ -42,35 +42,28 @@ int main ( void )
     init_tasten();
     init_taste2_irq();
 
+    /* Reference Manual für genaue Befehlsabfolge zum Enablen des Standby-Modus: Seite 105/1416. Unterpunkt 2.
+     *
+     * Stromverbrauch im Standbye-Modus: 17-18 mA verursacht im Wesentlichen durch Peripherieeinheiten
+     * da der Stromverbauch des Chips nach Website 4uA ist.
+     */
+
     green_LED_ON;
     usart_2_print(" \r\nSystem Neustart");
 
-    /*
-     * Kein stop modus:
-     * 	- LED an: 64-65 mA,
-     * 	- LED aus: 65-66 mA
-     * Stop modus (LED immer an):
-     * 21 mA
-     * Dh. sleep mode 35mA - Stop Mode 21mA -> 14mA ist das Clocksystem das ausgeschaltet wird.
-     * Von den übrigen ~21 mA sind ca. 19 Peripherieeinheiten und 2mA Flash speicher etc. (erwarteter Stromverbeauch beim Stop-Mode)
-     *
-     * Wenn das SystemInit() nicht eingefügt wird, läfut das Clocksystem auf 16MHz (HSI). Daher funktioniert die usart-Ausgabe nicht mehr
-     * (falsche BAUD-Rate) und die LED blinkt ca. alle 30 Sekunden (168MHz vs. 16MHz)
-     */
     while(1) {
-		wait_mSek(3000);
+		wait_mSek(1000);
 		green_LED_Toggle;
 		if(taste1_pressed()) {
 			green_LED_ON;
-			usart_2_print("\r\nSTOP Mode Start");
 
-			PWR_FlashPowerDownCmd(ENABLE);
-			PWR_EnterSTOPMode(PWR_Regulator_LowPower, PWR_STOPEntry_WFI);
-			PWR_FlashPowerDownCmd(DISABLE);
 
-			SystemInit();
+			init_RTC_wakeup_timer(30);
+			wait_mSek(2000);
+			usart_2_print("\r\nStandbye Mode Start");
+			//hier anschalten
+		    PWR_EnterSTANDBYMode();
 
-			usart_2_print("\r\nSTOP Mode Ende");
 		}
     }
 }

@@ -609,3 +609,58 @@ void init_alarm_every_sec(int delta, int init) {
     usart_2_print(data);
 
 }
+
+void init_RTC_wakeup_timer(uint16_t sec) {
+
+	// Strukt anlegen
+	    EXTI_InitTypeDef EXTI_InitStructure;
+	    NVIC_InitTypeDef NVIC_InitStructure;
+
+	    // EXTI-Line Konfiguration für WakeUp
+	    EXTI_ClearITPendingBit(EXTI_Line22);
+	    EXTI_InitStructure.EXTI_Line = EXTI_Line22;
+	    EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+	    EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;
+	    EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+	    EXTI_Init(&EXTI_InitStructure);
+
+	    // NIVC Konfiguration für WakeUp
+	    NVIC_InitStructure.NVIC_IRQChannel = RTC_WKUP_IRQn;
+	    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+	    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+	    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	    NVIC_Init(&NVIC_InitStructure);
+
+	    RTC_WakeUpCmd(DISABLE);
+
+	    // Konfiguration der Clock
+	    // RTC_WakeUpClock_RTCCLK_Div2;    (122,070usek...4sek) Zeitbasis: 61,035us
+	    // RTC_WakeUpClock_RTCCLK_Div4;    (244,140usek...8sek) Zeitbasis: 122,070us
+	    // RTC_WakeUpClock_RTCCLK_Div8;    (488,281usek...16sek)Zeitbasis: 244,140us
+	    // RTC_WakeUpClock_RTCCLK_Div16;   (976,562usek...32sek)Zeitbasis: 488,281us
+	    // RTC_WakeUpClock_CK_SPRE_16bits; (1sek...65535sek)    Zeitbasis: 1s
+	    // RTC_WakeUpClock_CK_SPRE_17bits: (1sek...131070sek)   Zeitbasis: 1s
+	    RTC_WakeUpClockConfig(RTC_WakeUpClock_CK_SPRE_16bits);
+
+	    // RTC_WakeUpCouter mit einem Wert zwischen 0x0000...0xFFFF setzen
+	    // Wert des WakeUpCounter aus Zeitintervall/Zeitbasis berechnen
+	    // WakeUpCounterwert für intervall von Eingabewert sec s bei RTC_WakeUpClock_CK_SPRE_16bits
+	    // ergibt sich aus sec/1s = sec
+	    RTC_SetWakeUpCounter(sec);
+
+	    //a)    Disable the RTC Wakeup interrupt
+	    RTC_ITConfig(RTC_IT_WUT,DISABLE);
+
+	    //b)    Clear the RTC Wakeup (WUTF) flag and afterwards the corresponding bit
+	    RTC_ClearFlag(RTC_FLAG_WUTF);
+	    RTC_ClearITPendingBit(RTC_IT_WUT);
+
+	    //c)     Clear the PWR Wakeup (WUF) flag
+	    PWR_ClearFlag(PWR_CSR_WUF);
+
+	    //d)    Enable the RTC Wakeup interrupt
+	    RTC_ITConfig(RTC_IT_WUT, ENABLE);   // Bit 14
+
+	    RTC_WakeUpCmd(ENABLE);
+
+}
