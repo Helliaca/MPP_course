@@ -159,10 +159,17 @@ void init_Taster2_IRQ5(void)
 void TASTER2_IRQ(void)
 //=========================================================================
 {
+	//A07.01.01 Begin
+	green_LED_OFF;
+
+	//A07.01.01 End
+
+
 	/*
 	 * taste2_counter wird nur inkrementiert, sobal die Line zu Taste 1 disabled ist.
 	 * Erreicht taste2_counter ==2 werden beide counter resetted und die Line wieder neu initialisiert.
 	 */
+	/*
 	if(taste1_counter == -1){
 		taste2_counter++;
 		if (taste2_counter > 1) {
@@ -178,7 +185,7 @@ void TASTER2_IRQ(void)
 
 
 	green_LED_OFF;
-
+	 */
 	//	beep(4000,200,200);
 //	beep(4000,200,200);
 //	beep(4000,200,200);

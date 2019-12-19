@@ -8,7 +8,7 @@ int main ( void )
     // SysTick initialisieren
     // jede Millisekunde erfolgt dann der Aufruf
     // des Handlers fuer den Interrupt SysTick_IRQn
-    InitSysTick();
+    //InitSysTick();
 
     // blink_interval wird win SysTickHandler verwendet und
     // spezifiziert das Blink-Intervall in ms. -1 entspricht "Nicht Blinken".
@@ -21,7 +21,7 @@ int main ( void )
     // Start der RTC  falls diese noch
     // nicht initialisiert war wird
     // die RTC mit der LSE-Taktquelle aktiviert
-    start_RTC();
+    //start_RTC();
 
     // Anmeldung beim WLAN Access Point
     // SSID: MPP_IoT
@@ -39,13 +39,27 @@ int main ( void )
 	// Beispiel für die Loesung einer Aufgabe
     init_leds();
     init_usart_2();
-    //init_usart_2_irq();
-
-    init_alarm_every_sec(5, 1);
+    init_tasten();
+    init_taste2_irq();
 
     green_LED_ON;
+    usart_2_print(" System Neustart\n");
+
+    /*
+     * Kein sleep modus:
+     * 	- LED an: 64-65 mA,
+     * 	- LED aus: 65-66 mA
+     * Sleep modus (LED immer an):
+     * 35 mA
+     */
     while(1) {
-		wait_mSek(1000);
-		usart_2_print(".");
+		wait_mSek(3000);
+		green_LED_Toggle;
+		if(taste1_pressed()) {
+			green_LED_ON;
+			usart_2_print("Sleep Mode Start\n");
+			__WFI();
+			usart_2_print("Sleep Mode Ende\n");
+		}
     }
 }
