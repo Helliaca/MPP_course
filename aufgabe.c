@@ -545,3 +545,69 @@ void init_alarm2(void) {
 	RTC_ClearFlag(RTC_FLAG_ALRAF);
 
 }
+
+void init_alarm_every_sec(int delta, int init) {
+	RTC_AlarmCmd(RTC_Alarm_A, DISABLE);
+
+	RTC_AlarmTypeDef RTC_Alarm_Struct;
+	RTC_AlarmStructInit(&RTC_Alarm_Struct);
+
+	// Alarmzeit setzen
+	RTC_TimeTypeDef  RTC_Time_Aktuell;
+	RTC_GetTime(RTC_Format_BIN, &RTC_Time_Aktuell);
+
+	RTC_Alarm_Struct.RTC_AlarmTime.RTC_Hours = RTC_Time_Aktuell.RTC_Hours;
+	RTC_Alarm_Struct.RTC_AlarmTime.RTC_Minutes = RTC_Time_Aktuell.RTC_Minutes;
+	RTC_Alarm_Struct.RTC_AlarmTime.RTC_Seconds = (RTC_Time_Aktuell.RTC_Seconds + delta);
+
+	// Alarmmaske setzen (kann auch verodert werden)
+	RTC_Alarm_Struct.RTC_AlarmMask          = RTC_AlarmMask_DateWeekDay   // Wochentag oder Tag ausgeblendet
+	                                        | RTC_AlarmMask_Hours         // Stunde ausgeblendet
+	                                        | RTC_AlarmMask_Minutes;       // Minute ausgeblendet
+
+	// Konfiguration von Alarm A
+	RTC_SetAlarm(RTC_Format_BIN, RTC_Alarm_A, &RTC_Alarm_Struct);
+
+	if(init==1) {
+		// RTC Alarm A Interruptkonfiguration
+
+		// Anlegen der benötigten Structs
+		EXTI_InitTypeDef EXTI_InitStructure;
+		NVIC_InitTypeDef NVIC_InitStructure;
+
+		// EXTI-Line Konfiguration
+		EXTI_ClearITPendingBit(EXTI_Line17);
+		EXTI_InitStructure.EXTI_Line = EXTI_Line17;
+		EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+		EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;
+		EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+		EXTI_Init(&EXTI_InitStructure);
+
+		// NIVC Konfiguration
+		NVIC_InitStructure.NVIC_IRQChannel = RTC_Alarm_IRQn;
+		NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+		NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+		NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+		NVIC_Init(&NVIC_InitStructure);
+	}
+
+	// Konfigurieren des Alarm A
+	RTC_ITConfig(RTC_IT_ALRA, ENABLE);
+
+	// RTC Alarm A freigeben
+	RTC_AlarmCmd(RTC_Alarm_A, ENABLE);
+
+	// Alarmflag löschen
+	RTC_ClearFlag(RTC_FLAG_ALRAF);
+
+	char data[50] = {0};
+    sprintf(data,
+      "\r\nTIME: %.2d:%.2d:%.2d:%.2d",
+      RTC_Time_Aktuell.RTC_Hours,
+      RTC_Time_Aktuell.RTC_Minutes,
+      RTC_Time_Aktuell.RTC_Seconds,
+      RTC_Time_Aktuell.RTC_H12
+    );
+    usart_2_print(data);
+
+}

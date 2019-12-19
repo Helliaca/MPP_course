@@ -300,7 +300,6 @@ void EXTI15_10_IRQHandler(void)
 
 }
 
-
 //=========================================================================
 void RTC_Alarm_IRQHandler(void)
 {
@@ -330,7 +329,10 @@ void RTC_Alarm_IRQHandler(void)
 		{
 			RTC_ClearITPendingBit(RTC_IT_ALRA);
 			EXTI_ClearITPendingBit(EXTI_Line17);
-			usart_2_print("\r\n Alarm a klingeling");
+			// Ab dem zweiten mal wird keine Interrupt ausgeführt. (init ist überföülüssig)
+			usart_2_print("Interrupt!");
+			init_alarm_every_sec(0x05, 0);
+			green_LED_Toggle;
 			//	if (RTC_Alarm_CallBack[0] != NULL)
 			//	{
 			//	RTC_Alarm_CallBack[0]();

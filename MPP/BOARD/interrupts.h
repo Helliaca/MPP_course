@@ -76,6 +76,7 @@
 //#include "rtc.h"
 #include "taster.h"
 #include "usart.h"
+#include "aufgabe.h"
 
 
 
@@ -144,7 +145,7 @@ RTC_TimeTypeDef  RTC_Time_IN;
 RTC_DateTypeDef  RTC_Date_IN;
 
 //========== Funktionen
-
+void ring_in_seconds(int);
 
 
 

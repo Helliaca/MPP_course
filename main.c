@@ -37,10 +37,13 @@ int main ( void )
     //CoStartOS ();
 
 	// Beispiel für die Loesung einer Aufgabe
+    init_leds();
     init_usart_2();
-    init_usart_2_irq();
-    init_alarm2();
+    //init_usart_2_irq();
 
+    init_alarm_every_sec(0x05, 1);
+
+    green_LED_ON;
     while(1) {
 		wait_mSek(1000);
 		usart_2_print(".");
