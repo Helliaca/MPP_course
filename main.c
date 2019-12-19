@@ -43,23 +43,34 @@ int main ( void )
     init_taste2_irq();
 
     green_LED_ON;
-    usart_2_print(" System Neustart\n");
+    usart_2_print(" \r\nSystem Neustart");
 
     /*
-     * Kein sleep modus:
+     * Kein stop modus:
      * 	- LED an: 64-65 mA,
      * 	- LED aus: 65-66 mA
-     * Sleep modus (LED immer an):
-     * 35 mA
+     * Stop modus (LED immer an):
+     * 21 mA
+     * Dh. sleep mode 35mA - Stop Mode 21mA -> 14mA ist das Clocksystem das ausgeschaltet wird.
+     * Von den übrigen ~21 mA sind ca. 19 Peripherieeinheiten und 2mA Flash speicher etc. (erwarteter Stromverbeauch beim Stop-Mode)
+     *
+     * Wenn das SystemInit() nicht eingefügt wird, läfut das Clocksystem auf 16MHz (HSI). Daher funktioniert die usart-Ausgabe nicht mehr
+     * (falsche BAUD-Rate) und die LED blinkt ca. alle 30 Sekunden (168MHz vs. 16MHz)
      */
     while(1) {
 		wait_mSek(3000);
 		green_LED_Toggle;
 		if(taste1_pressed()) {
 			green_LED_ON;
-			usart_2_print("Sleep Mode Start\n");
-			__WFI();
-			usart_2_print("Sleep Mode Ende\n");
+			usart_2_print("\r\nSTOP Mode Start");
+
+			PWR_FlashPowerDownCmd(ENABLE);
+			PWR_EnterSTOPMode(PWR_Regulator_LowPower, PWR_STOPEntry_WFI);
+			PWR_FlashPowerDownCmd(DISABLE);
+
+			SystemInit();
+
+			usart_2_print("\r\nSTOP Mode Ende");
 		}
     }
 }
