@@ -1,0 +1,41 @@
+General-purpose timers: (TIM2-TIM5)
+
+- Manche haben 16-bit counters (tim3 & tim4) andere 32-bit (tim2 & tim5)
+
+- Als count modi gibt es: 
+	- Upcounting: Zählt bis zum auto-reload wert hoch, dann wieder von 0
+	- Downcounting: Zählt bis 0 runter, dann wieder von auto-reload wert
+	- Up/Down bzw. Center-aligned mode: Zählt auf 0 runter, dann zurück auf auto-reload, dann zurück auf 0 etc. (Erzeugz jeweils underlflow/overflows)
+
+- Es gibt einen 16-bit presacler der die clock-frequenz durch eine Zahl zwi. 1 und 65536 teilt
+
+- Es gibt 4 channels für:
+	- Input capture
+	- Output compare
+	- PWM generaion
+	- one-pule mode output
+
+- Es können Interrupts ausgelöst werden wenn:
+	- Overflow/Underflow
+	- Intilization
+	- On Update
+	- Input capture
+	- Output compare
+
+- Besteht aus 3 Einheiten:
+	- Counter Register (TIMx_CNT)
+	- Prescaler Register (TIMx_PSC)
+	- Auto-Reload Register (TIMx_ARR)
+
+- Sachen die in den Prescaler Register geschrieben werden werden nur übernommen sobald ein Update-Event (UEV) geschieht.
+	Dies passiert wenn der Counter Overflowed bzw. Underflowed, kann aber auch über software generiert werden.
+
+- Als clock-source kann folgendes gewählt werden:
+	- Internal clock (CK_INT)
+	- Externak clock mode 1 (external input pin)
+	- External clock mode 2: External trigger input (nur auf TIM2-4)
+	- Einen Timer als prescaler für einen anderen verwenden
+
+- Zu Input capture mode:
+	Der counter wird dann gezählt wenn sich ein input signal verändert. Es kann auch ein interrupt ausgelöst werden.
+	Um input cature zu aktivieren (zb. TIMx_CCR1 wenn TI1 input von 0 auf 1 steigt): Siehe Manual seite 434 (pdf)
