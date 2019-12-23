@@ -1,0 +1,59 @@
+8-1-2
+
+//aufgabe.c
+init_tim6_iqr() {
+    // Konfiguration der Interruptcontrollers
+    NVIC_InitTypeDef NVIC_InitStructure;
+    NVIC_InitStructure.NVIC_IRQChannel = TIM6_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVIC_InitStructure);
+
+    // Taktsystem für TIM6 Freigeben
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6, ENABLE);
+
+    // Struktur anlegen
+    TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+
+    // TIM6 in der Struktur konfigurieren
+    TIM_TimeBaseStructure.TIM_Prescaler = 8400 - 1; // 100µs = 8400 * 1/84000000Hz 
+    TIM_TimeBaseStructure.TIM_Period = 100 - 1;   // 10ms = 100 * 100µs
+    TIM_TimeBaseStructure.TIM_ClockDivision = 0;
+    TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+
+    // TIM6 Register aus der Struktur Schreiben
+    TIM_TimeBaseInit(TIM6, &TIM_TimeBaseStructure);
+
+    // TIM6 Interrupt erlauben
+    TIM_ITConfig(TIM6, TIM_IT_Update, ENABLE);
+
+    // TIM 6 Freigeben (Takt auf Counter schalten)
+    TIM_Cmd(TIM6, ENABLE);
+}
+
+//interrupts.c
+int tim6_counter = -1;
+...
+void TIM6_IRQHandler(void){
+    if (TIM_GetITStatus(TIM6, TIM_IT_Update) != RESET) {
+        TIM_ClearITPendingBit(TIM6, TIM_IT_Update);
+        
+        if(tim6_counter>=0) tim6_counter++;
+    }
+}
+
+//taste1 IRQ:
+tim6_counter = 0;
+usart_2_print("\r\nZeitmessung begonnen");
+
+//taste2 IRQ:
+char data[50] = {0};
+sprintf(data, "\r\nTIM6 COUNTER: %f s", ((float)tim6_counter)/100.0f);
+usart_2_print(data)
+tim7_counter = -1;
+
+//main.c
+init_tasten();
+init_taste1_irq();
+init_taste2_irq();
