@@ -1,0 +1,84 @@
+8-2-1
+
+// Aus Timer main Aufgaben-kontext (http://hwp.mi.fu-berlin.de/intern/STM32/08080000.php)
+// + Siehe beeper.c (https://github.com/Helliaca/MPP_course/blob/master/MPP/BOARD/beeper.c)
+
+void init_BEEPER(void) {	
+    GPIO_InitTypeDef GPIO_InitStructure;
+
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
+
+	GPIO_StructInit(&GPIO_InitStructure);
+
+	GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_8 ;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_OUT;
+	GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;
+	GPIO_InitStructure.GPIO_OType =  GPIO_OType_PP;
+	GPIO_Init(GPIOB, &GPIO_InitStructure);
+
+	GPIO_ResetBits(GPIOB, GPIO_Pin_8);
+}
+
+
+void beep(uint16_t freq, uint16_t duration) {
+    //uint16_t frequenz_in_Hz = 1500;         // gewuenschte Frequenz in Hz
+    uint16_t PWM_Tastverhaeltnis_OC1 = 5;  // Tastverhältnis TIM12C1 in %
+
+    // SystemCoreClock = 168000000 Hz
+    // CK_INT = SystemCoreClock / 2 = 84000000 Hz
+    // CK_CNT = 1000000 Hz entspricht einer Periodendauer 0.000001s
+    // PSC_Prescaler = CK_INT / CK_CNT = 84000000Hz / 1000000Hz = 84
+    uint16_t PSC_Prescaler = 84;
+
+    // PWM_Periode = PWM_Periodendauer / CK_CNT_Periodendauer
+    // oder
+    // PWM_Periode = CK_CNT / Frequenz
+    uint16_t PWM_Periode = (uint16_t) (2.0f*1000000.0f/freq);
+
+    // PWM_Tastverhaeltnis_OC1 (1...100 in %)
+    uint16_t PWM_Pulsbreite_OC1 = (uint16_t) ( PWM_Periode * PWM_Tastverhaeltnis_OC1 / 100);
+
+    TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
+    TIM_TimeBaseStructure.TIM_Prescaler = PSC_Prescaler -1;
+    TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+    TIM_TimeBaseStructure.TIM_Period = PWM_Periode - 1; //ARR
+    TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+    TIM_TimeBaseInit(TIM10, &TIM_TimeBaseStructure);
+
+    TIM_OCInitTypeDef  TIM_OCInitStructure;
+    TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
+    TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
+    TIM_OCInitStructure.TIM_Pulse = PWM_Pulsbreite_OC1; //CCR
+    TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
+    TIM_OC1Init(TIM10, &TIM_OCInitStructure);
+
+    TIM_OC1PreloadConfig(TIM10, TIM_OCPreload_Enable);
+    TIM_ARRPreloadConfig(TIM10, ENABLE);
+    TIM_Cmd(TIM10, ENABLE);
+    
+    // ab jetzt gibt der Signalgeber einen Ton aus
+    // für eine Sekunde einen Ton aus
+    wait_mSek(duration);
+
+    // jetzt muß der Port auf Low geschaltet werden 
+    // um den Stromverbrauch zu minimieren
+    // Damit ist die Tonausgabe beendet.
+    // Bzw. wir setzen Pullup-pulldown auf Pull UP = kein Signal
+    // Alternative:  TIM_Cmd(TIM10, DISABLE); ??
+    GPIO_InitTypeDef GPIO_InitStructure;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8 ;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP ;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
+
+    GPIO_ResetBits(GPIOB, GPIO_Pin_8);
+}
+
+
+
+8-2-2
+
+Gleich wie 8-1-1 aber einstellen von Pulsbreite bzw. Tastenverhältnis
