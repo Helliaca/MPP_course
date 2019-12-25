@@ -77,7 +77,7 @@ void start_messung() {
 //....
 for(int i=0; i<10; i++) {
     green_LED_OFF;
-    delay = random smth
+    delay = get_random (Siehe Zusatzmaterial ganz unten)
     
     usart_2_print("\r\ns");
     
