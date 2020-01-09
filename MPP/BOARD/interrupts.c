@@ -422,6 +422,13 @@ void USART2_IRQHandler(void)
 	{
 		char zeichen = (char)USART_ReceiveData(USART2);
 
+		//A8-1-4
+		if(zeichen=='s') {
+			messung_started = 1;
+		}
+		//Ende A8-1-4
+
+		/*
 		if (str_len >= PUFFER_SIZE) {
 			str_len = 0;
 			char * error_msg = "Puffer size exceeded.\r\n";
@@ -433,21 +440,13 @@ void USART2_IRQHandler(void)
 				process(usart2_rx_buffer);
 				//Setze Zeiger wieder an Anfang des char arrays
 				str_len = 0;
-				/*
-				 * bei der ersten Ausführung wird noch am Anfang des Strings ein '-' ausgegeben. ???
-				 */
-
 			} else {
 				usart2_rx_buffer[str_len] = zeichen;
 				str_len++;
 			}
 		}
+		*/
 	}
-
-	//===== USART2
-	//UART2_IRQHandler();
-	//USART2_IRQ();
-    //usart2_send("USART2_IRQn\r\n");
 }
 
 
@@ -502,10 +501,11 @@ void TIM3_IRQHandler(void)
 //=========================================================================
 void TIM5_IRQHandler(void)
 {
-	if(TIM_GetITStatus(TIM5, TIM_IT_CC2) == SET)
-		{
-			TIM_ClearITPendingBit(TIM1, TIM_IT_CC2);
-		}
+	if (TIM_GetITStatus(TIM5, TIM_IT_Update) != RESET) {
+		TIM_ClearITPendingBit(TIM5, TIM_IT_Update);
+
+		usart_2_print("\r\nWarning: Maximum time exceeded.");
+	}
 }
 //=========================================================================
 void TIM7_IRQHandler(void)

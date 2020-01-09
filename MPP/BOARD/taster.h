@@ -50,7 +50,7 @@
 
 
 //========== Variablen
-
+int reactiontime;
 
 //========== Funktionen
 

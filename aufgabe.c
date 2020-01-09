@@ -804,3 +804,88 @@ void init_tim3() {
 	// Bei Erreichen des Grenzwertes von 10 Tastenbetätigungen
 	// wird die ISR aufgerufen
 }
+
+//A8-1-4
+void init_tim5() {
+    // Signal zur Frequenzmessung wird an die Portleitung
+    // PA01 TIM5CH2 angeschlossen
+
+    // Taktsystem für die Port A Freigeben
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+    // Struktur anlegen
+    GPIO_InitTypeDef GPIO_InitStructure;
+    // Struktur Initialisieren
+    GPIO_StructInit(&GPIO_InitStructure);
+    // Portleitung in der Struktur Konfigurieren
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
+    // Werte aus der Struktur in die Register schreiben
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+
+    // Taktsystem für TIM5 Freigeben
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM5, ENABLE);
+    // Alternativfunktion der Portleitung Freigeben
+    GPIO_PinAFConfig(GPIOA, GPIO_PinSource1, GPIO_AF_TIM5);
+    //Struktur anlegen
+    TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+    // Timer in der Struktur konfigurieren
+    /*
+     * Prescaler und Reload register sind immer 16 bit, egal welcher Timer. Dh. maximalwert von ~65000
+     * Darasu folgt dass Prescaler <= 8400 für gerade zahlen was zu einer
+     * minimalen Auflösung von 0.1ms Führt.
+     * Da Auflösung = 0.1ms und Reload Register max. 65k -> maximal ein Wert von 6,5s messbar.
+     * Für menschl. Reaktionszeit ist dies angemessen.
+     */
+    TIM_TimeBaseStructure.TIM_Prescaler = 8400 - 1; //Zeitauflösung 0.1ms für Reaktionszeitmessung
+    TIM_TimeBaseStructure.TIM_Period = 0xFFFF -1;  //Maximalzeit 6.5s für Reaktionszeitmessung
+    TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+    TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+    // TIM5 Register aus dem Strukt Schreiben
+    TIM_TimeBaseInit(TIM5, &TIM_TimeBaseStructure);
+    // dadurch zählt der Counter in 0,00001sek Schritten hoch
+
+
+    // TIM5CH2 Erkennen steigender Flanke an TI2
+    TIM5->CCMR1 |= TIM_CCMR1_CC2S_0;
+    // Input Filter setzen
+    TIM5->CCMR1 |= TIM_CCMR1_IC2F_2 + TIM_CCMR1_IC2F_1 + TIM_CCMR1_IC2F_0;
+    // Trigger auf Steigende Flanke setzen
+    TIM5->CCER   |= TIM_CCER_CC2P;
+    // Prescaler auf Null setzen
+    TIM5->CCMR1   &= ~(TIM_CCMR1_IC2PSC_1 + TIM_CCMR1_IC2PSC_0);
+    // Capture freigeben
+    TIM5->CCER   |= TIM_CCER_CC2E;
+    // Enable Interrupt
+    TIM5->DIER   |= TIM_DIER_CC2IE;
+
+    // Konfiguration der Interruptcontrollers (Timer überhaupt interruptfähig machen)
+	NVIC_InitTypeDef NVIC_InitStructure;
+	NVIC_InitStructure.NVIC_IRQChannel = TIM5_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
+
+	// TIM5 Interrupt erlauben
+	TIM_ITConfig(TIM5, TIM_IT_Update, ENABLE);
+}
+
+uint32_t get_random_int(uint32_t min, uint32_t max)
+{
+    uint32_t zahl=0;
+
+    RCC_AHB2PeriphClockCmd(RCC_AHB2Periph_RNG, ENABLE);
+    RNG_Cmd(ENABLE);
+
+    while(RNG_GetFlagStatus(RNG_FLAG_DRDY)== RESET);
+    zahl = RNG_GetRandomNumber();
+
+    RNG_Cmd(DISABLE);
+    RCC_AHB2PeriphClockCmd(RCC_AHB2Periph_RNG, DISABLE);
+
+    uint32_t result = min + (max-min)*((float) zahl/4294967295);
+    return result;
+}

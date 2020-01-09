@@ -165,12 +165,16 @@ void init_Taster2_IRQ5(void)
 void TASTER2_IRQ(void)
 //=========================================================================
 {
-	//A8-1-2
+	//A8-1-4
+	reactiontime = TIM_GetCounter(TIM5);
+	//ENDE A8-1-4
+
+	/*//A8-1-2
 	char data[50] = {0};
 	sprintf(data, "\r\nTIM7 COUNTER: %f s", ((float)tim7_counter)/100.0f);
 	usart_2_print(data);
 	tim7_counter = -1;
-	//Ende A8-1-2
+	*///Ende A8-1-2
 
 	//A07.01.01 Begin
 	//green_LED_OFF;

@@ -135,6 +135,8 @@ void init_RTC_wakeup_timer(uint16_t sec);
 void init_tim7_irq();
 void init_tim7_irq_2();
 void init_tim3();
+void init_tim5(void);
+uint32_t get_random_int(uint32_t, uint32_t);
 
 
 //=========================================================================

@@ -37,23 +37,66 @@ int main ( void )
     //CoStartOS ();
 
 	// Beispiel für die Loesung einer Aufgabe
-    //init_leds();
+    init_leds();
     init_usart_2();
-    //init_tasten();
+    init_usart_2_irq();
+    init_tasten();
+    init_taste2_irq();
+    init_tim5();
 
-    /* Reference Manual für genaue Befehlsabfolge zum Enablen des Standby-Modus: Seite 105/1416. Unterpunkt 2.
-     *
-     * Stromverbrauch im Standbye-Modus: 17-18 mA verursacht im Wesentlichen durch Peripherieeinheiten
-     * da der Stromverbauch des Chips nach Website 4uA ist.
-     */
+    messung_started = 0;
+    uint32_t messungen[10] = {0};
 
-    init_tim3();
-
+    uint32_t delay;
     while(1) {
-    	wait_mSek(2000);
-    	int counter = TIM_GetCounter (TIM3); //Exisitert diese Funktion?
+    	while(!messung_started) {}
+    	usart_2_print("\r\nMessungen started");
+
+    	//10 Messungen
+    	int i;
+    	for(i=0; i<10; i++) {
+    		green_LED_OFF;
+    		delay = get_random_int(2000, 10000);
+
+			wait_mSek(delay);
+
+			green_LED_ON;
+			reactiontime = -1;
+
+
+			// Counter auf 0 setzen
+			TIM_SetCounter (TIM5, 0x00);
+			// Timer TIM5 Freigeben
+			TIM_Cmd(TIM5, ENABLE);
+			// Messung läuft jetzt
+
+			//Taster interrupt setzt reactiontime auf die vergangene Zeit.
+			while(reactiontime < 0) {}
+			TIM_Cmd(TIM5, DISABLE);
+			messungen[i] = reactiontime;
+    	}
+
+    	uint32_t sum = 0;
+    	uint32_t min = 4294967295;
+    	uint32_t max = 0;
+
+    	int j = 0;
+    	for(j=0; j<10; j++) {
+    	    sum += messungen[j];
+    	    if(messungen[j]<min) min = messungen[j];
+    	    if(messungen[j]>max) max = messungen[j];
+    	}
+
     	char data[50] = {0};
-    	sprintf(data, "\r\nTIM3 COUNTER: %d", counter);
+    	sprintf(data, "\r\nMin: %1.4f s", (float) min * 0.0001);
     	usart_2_print(data);
+    	sprintf(data, "\r\nMax: %1.4f s", (float) max * 0.0001);
+    	usart_2_print(data);
+    	sprintf(data, "\r\nAvg: %1.4f s", (float) sum/10 * 0.0001);
+    	usart_2_print(data);
+
+    	// Restart
+    	messung_started = 0;
+    	green_LED_OFF;
     }
 }
