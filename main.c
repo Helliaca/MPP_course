@@ -21,7 +21,7 @@ int main ( void )
     // Start der RTC  falls diese noch
     // nicht initialisiert war wird
     // die RTC mit der LSE-Taktquelle aktiviert
-    start_RTC();
+    //start_RTC();
 
     // Anmeldung beim WLAN Access Point
     // SSID: MPP_IoT
@@ -37,10 +37,10 @@ int main ( void )
     //CoStartOS ();
 
 	// Beispiel für die Loesung einer Aufgabe
-    init_leds();
+    //init_leds();
     init_usart_2();
-    init_tasten();
-    init_taste2_irq();
+    //init_tasten();
+    //init_taste2_irq();
 
     /* Reference Manual für genaue Befehlsabfolge zum Enablen des Standby-Modus: Seite 105/1416. Unterpunkt 2.
      *
@@ -48,22 +48,9 @@ int main ( void )
      * da der Stromverbauch des Chips nach Website 4uA ist.
      */
 
-    green_LED_ON;
-    usart_2_print(" \r\nSystem Neustart");
+    init_tim7_iqr();
 
     while(1) {
-		wait_mSek(1000);
-		green_LED_Toggle;
-		if(taste1_pressed()) {
-			green_LED_ON;
-
-
-			init_RTC_wakeup_timer(30);
-			wait_mSek(2000);
-			usart_2_print("\r\nStandbye Mode Start");
-			//hier anschalten
-		    PWR_EnterSTANDBYMode();
-
-		}
+    	// Do things
     }
 }

@@ -662,5 +662,38 @@ void init_RTC_wakeup_timer(uint16_t sec) {
 	    RTC_ITConfig(RTC_IT_WUT, ENABLE);   // Bit 14
 
 	    RTC_WakeUpCmd(ENABLE);
+}
 
+void init_tim7_iqr() {
+	// Konfiguration der Interruptcontrollers
+	NVIC_InitTypeDef NVIC_InitStructure;
+	NVIC_InitStructure.NVIC_IRQChannel = TIM7_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
+
+	// Taktsystem für TIM7 Freigeben
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM7, ENABLE);
+
+	// Struktur anlegen
+	TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+
+	// TIM7 in der Struktur konfigurieren
+	TIM_TimeBaseStructure.TIM_Prescaler = 8400 - 1; // 100µs = 8400 * 1/84000000Hz  //Warum -1?
+	TIM_TimeBaseStructure.TIM_Period = 10000 - 1;   // 1s = 10000 * 100µs
+	TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+
+	// TIM7 Register aus der Struktur Schreiben
+	TIM_TimeBaseInit(TIM7, &TIM_TimeBaseStructure);
+
+	// TIM7 Interrupt erlauben
+	TIM_ITConfig(TIM7, TIM_IT_Update, ENABLE);
+
+	// TIM 7 Freigeben (Takt auf Counter schalten)
+	TIM_Cmd(TIM7, ENABLE);
+
+	// ab jetzt wird jede Sekunde ein Interrupt ausgelöst
+	// der die ISR d.h. den TIM7_IRQHandler aufruft.
 }

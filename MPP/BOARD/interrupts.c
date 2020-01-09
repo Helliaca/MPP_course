@@ -498,9 +498,19 @@ void TIM5_IRQHandler(void)
 
 
 //=========================================================================
+int tim7_counter=0;
 void TIM7_IRQHandler(void)
 {
-	BEEPER_IRQHandler();
+	if (TIM_GetITStatus(TIM7, TIM_IT_Update) != RESET) {
+		TIM_ClearITPendingBit(TIM7, TIM_IT_Update);
+
+		tim7_counter++;
+
+		char data[50] = {0};
+		sprintf(data, "\r\nTIM7 COUNTER: %d", tim7_counter);
+		usart_2_print(data);
+	}
+	//BEEPER_IRQHandler();
 }
 
 //=========================================================================
