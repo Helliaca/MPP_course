@@ -730,3 +730,77 @@ void init_tim7_irq_2() {
     // TIM 7 Freigeben (Takt auf Counter schalten)
     TIM_Cmd(TIM7, ENABLE);
 }
+
+//A8-1-3
+void init_tim3() {
+	// Taktsystem für den Port C Freigeben
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+
+	// Struktur anlegen
+	GPIO_InitTypeDef GPIO_InitStructure;
+
+	// Portleitung in der Struktur Konfigurieren
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
+
+	// Werte aus der Struktur in die Register schreiben
+	GPIO_Init(GPIOC, &GPIO_InitStructure);
+
+	// Alternativfunktion der Portleitung Freigeben
+	GPIO_PinAFConfig(GPIOC, GPIO_PinSource8, GPIO_AF_TIM3);
+
+	// Taktsystem für Timer TIM3 Freigeben
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
+
+	// Siehe Input capture schritte im Manual
+	// Erkennen steigender Flanke an TI1
+	TIM3 -> CCMR1 |= TIM_CCMR1_CC1S_0 ;
+	TIM3 -> CR2 |= TIM_CR2_TI1S ;
+
+	// Polarität
+	TIM3 -> CCER |= TIM_CCER_CC1P ;
+
+	// Slave Mode, external Clock Mode1, TI1FP1 Signalquelle
+	TIM3 -> SMCR |= TIM_SMCR_SMS + TIM_SMCR_TS_2 + TIM_SMCR_ETF_0; //TIM_SMCR_TS_0 ;
+
+	// Jetzt haben wir einen external clock mode aktiviert und diesen mit dem Timer verbunden.
+	// Als externe clock (Alternativ-funktion) nehmen wir den Input von PC08 (also der taste)
+	// Der counter wird also jedesmal getriggered wenn eine steigende Flanke bei PC08 vorliegt.
+	// Als nächsten Schritt erzeugen wir einen Interrupt wenn 10x hochgezählt wurde.
+
+	// Konfiguration der Interruptcontrollers (Timer überhaupt interruptfähig machen)
+	NVIC_InitTypeDef NVIC_InitStructure;
+	NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
+
+	// Struktur anlegen
+	TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+
+	// TIM3 in der Struktur konfigurieren
+	TIM_TimeBaseStructure.TIM_Prescaler = 1;    // Der Input vom taster soll nicht gescaled werden. 1 Tastendruck = 1 up-count
+	TIM_TimeBaseStructure.TIM_Period = 10 - 1;  // Auto-reload wert. Bei 10 geschieht ein overflow, ein interrupt wird ausgeführt und wir beginnen von 0
+	TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up; //Von 0 auf 10 zählen
+
+	// TIM3 Register aus der Struktur Schreiben
+	TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
+
+	// TIM3 Interrupt erlauben
+	TIM_ITConfig(TIM3, TIM_IT_Update, ENABLE);
+
+	// Counter auf 0 setzen
+	TIM_SetCounter (TIM3, 0x00);
+
+	// Timer TIM3 Freigeben
+	TIM_Cmd(TIM3, ENABLE);
+
+	// ab jetzt führt jede Tastenbetätigung an Taster1 zur Erhöhung des
+	// CNT-Counter Wertes von Timer TIM3
+	// Bei Erreichen des Grenzwertes von 10 Tastenbetätigungen
+	// wird die ISR aufgerufen
+}

@@ -486,6 +486,18 @@ void RTC_WKUP_IRQHandler(void)
 		}
 }
 
+//=========================================================================
+void TIM3_IRQHandler(void)
+{
+	// Interrupt bei update
+	usart_2_print("\n\rTIM3_IRQ");
+	if (TIM_GetITStatus(TIM3, TIM_IT_Update) != RESET) {
+		TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
+
+		usart_2_print("\n\rCounter Overflow.");
+	}
+}
+
 
 //=========================================================================
 void TIM5_IRQHandler(void)

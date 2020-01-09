@@ -134,6 +134,7 @@ void init_alarm_every_sec(int, int);
 void init_RTC_wakeup_timer(uint16_t sec);
 void init_tim7_irq();
 void init_tim7_irq_2();
+void init_tim3();
 
 
 //=========================================================================
