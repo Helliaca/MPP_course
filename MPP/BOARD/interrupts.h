@@ -143,6 +143,7 @@ extern int16_t T2;
 extern char tasten[50];
 RTC_TimeTypeDef  RTC_Time_IN;
 RTC_DateTypeDef  RTC_Date_IN;
+int tim7_counter;
 
 //========== Funktionen
 void ring_in_seconds(int);

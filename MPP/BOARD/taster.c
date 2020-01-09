@@ -67,10 +67,16 @@ char msg[50];
 void TASTER1_IRQ(void)
 //=========================================================================
 {
+	//A8-1-2
+	tim7_counter = 0;
+	usart_2_print("\r\nZeitmessung begonnen");
+	//Ende A8-1-2
+
 	/*
 	 * taste1_counter wird bei jedem Drücken inkrementiert. Wurde die Taste 10 Mal betätigt,
 	 * wird die EXTI_Line disbabled. Dies ist am taste1_counter = -1 erkennbar.
 	 */
+	/*
 	taste1_counter++;
 	if(taste1_counter>9) {
 		EXTI_InitTypeDef EXTI_InitStructure;
@@ -86,13 +92,13 @@ void TASTER1_IRQ(void)
 	usart_2_print("==>Taster 1 gedrückt\r\n");
 	sprintf(msg, "Taste2_counter: %d\r\nTaste1_counter: %d\r\n", taste2_counter, taste1_counter);
 	usart_2_print(msg);
-
+	*/
 
 	/*
 	usart2_send("==>Taster 1 gedrückt\r\n");
 	beep(1000,200,0);
 	*/
-	green_LED_ON;
+	//green_LED_ON;
 
 	//	while(!(GPIO_ReadOutputDataBit(GPIOC, GPIO_Pin_8)))
 	// {
@@ -159,8 +165,15 @@ void init_Taster2_IRQ5(void)
 void TASTER2_IRQ(void)
 //=========================================================================
 {
+	//A8-1-2
+	char data[50] = {0};
+	sprintf(data, "\r\nTIM7 COUNTER: %f s", ((float)tim7_counter)/100.0f);
+	usart_2_print(data);
+	tim7_counter = -1;
+	//Ende A8-1-2
+
 	//A07.01.01 Begin
-	green_LED_OFF;
+	//green_LED_OFF;
 
 	//A07.01.01 End
 

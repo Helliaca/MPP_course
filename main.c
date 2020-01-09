@@ -39,8 +39,9 @@ int main ( void )
 	// Beispiel für die Loesung einer Aufgabe
     //init_leds();
     init_usart_2();
-    //init_tasten();
-    //init_taste2_irq();
+    init_tasten();
+    init_taste1_irq();
+    init_taste2_irq();
 
     /* Reference Manual für genaue Befehlsabfolge zum Enablen des Standby-Modus: Seite 105/1416. Unterpunkt 2.
      *
@@ -48,7 +49,9 @@ int main ( void )
      * da der Stromverbauch des Chips nach Website 4uA ist.
      */
 
-    init_tim7_iqr();
+    init_tim7_irq_2();
+
+    tim7_counter=-1;
 
     while(1) {
     	// Do things
