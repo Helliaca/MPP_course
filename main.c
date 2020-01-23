@@ -37,66 +37,61 @@ int main ( void )
     //CoStartOS ();
 
 	// Beispiel für die Loesung einer Aufgabe
+
     init_leds();
     init_usart_2();
-    init_usart_2_irq();
-    init_tasten();
-    init_taste2_irq();
-    init_tim5();
+    init_ADC1_EXVOL();
+    //init_ADC1_EXVOL_BAT_TEMP();
 
-    messung_started = 0;
-    uint32_t messungen[10] = {0};
+    char buffer[50];
+    float measured_val;
+    int digitalwert;
 
-    uint32_t delay;
     while(1) {
-    	while(!messung_started) {}
-    	usart_2_print("\r\nMessungen started");
 
-    	//10 Messungen
-    	int i;
-    	for(i=0; i<10; i++) {
-    		green_LED_OFF;
-    		delay = get_random_int(2000, 10000);
+        //jeden Abschnitt in eine Unterfunktion eventuell
 
-			wait_mSek(delay);
+            wait_mSek(1000); //Konversiondauer beträgt 3* 1.4us ist also vernachlässigbar
 
-			green_LED_ON;
-			reactiontime = -1;
+            //externe Spannung
+            ADC_SoftwareStartConv(ADC1);
+            while(ADC_GetFlagStatus(ADC1,ADC_FLAG_EOC)==RESET);
+            digitalwert=ADC_GetConversionValue(ADC1);
+            measured_val = ((float) digitalwert/4095.0f) * 3.3f;      //2^12 = 4096 und V_ref=3.3V
 
+            //dieser Abshcnitt könnte auch mit Analog Watchdog gemacht werden
+            if(measured_val >= 1.4f) green_LED_ON;
+            else green_LED_OFF;
 
-			// Counter auf 0 setzen
-			TIM_SetCounter (TIM5, 0x00);
-			// Timer TIM5 Freigeben
-			TIM_Cmd(TIM5, ENABLE);
-			// Messung läuft jetzt
+            sprintf(buffer,"EXT_VOLT = %1.6f V \r\n",measured_val);
+            usart_2_print(buffer);
 
-			//Taster interrupt setzt reactiontime auf die vergangene Zeit.
-			while(reactiontime < 0) {}
-			TIM_Cmd(TIM5, DISABLE);
-			messungen[i] = reactiontime;
-    	}
+            /*
+            //Batteriespannung
+            ADC_SoftwareStartConv(ADC1);
+            while(ADC_GetFlagStatus(ADC1,ADC_FLAG_EOC)==RESET);
+            digitalwert=ADC_GetConversionValue(ADC1);
+            measured_val = 2.0f * ((float) digitalwert/4095.0f) * 3.3f; //wieso 2.0?
+            sprintf(buffer,"VBAT = %6.3f V\r\n",measured_val);
+            usart_2_print(buffer);
 
-    	uint32_t sum = 0;
-    	uint32_t min = 4294967295;
-    	uint32_t max = 0;
+            //Temperatursensor
+            ADC_SoftwareStartConv(ADC1);
+            while(ADC_GetFlagStatus(ADC1,ADC_FLAG_EOC)==RESET);
 
-    	int j = 0;
-    	for(j=0; j<10; j++) {
-    	    sum += messungen[j];
-    	    if(messungen[j]<min) min = messungen[j];
-    	    if(messungen[j]>max) max = messungen[j];
-    	}
+            digitalwert = ADC_GetConversionValue(ADC1);
+            measured_val = (float)(digitalwert/4095.0f) * 3.3f;
 
-    	char data[50] = {0};
-    	sprintf(data, "\r\nMin: %1.4f s", (float) min * 0.0001);
-    	usart_2_print(data);
-    	sprintf(data, "\r\nMax: %1.4f s", (float) max * 0.0001);
-    	usart_2_print(data);
-    	sprintf(data, "\r\nAvg: %1.4f s", (float) sum/10 * 0.0001);
-    	usart_2_print(data);
+            // aus dem Datenblatt stammen die zwei Werte:
+            // V25 = 0,76Volt bei 25°C (Spannungswert des Sensors bei 25°C)
+            // Average_Slope = 0,0025mV/°C (Spannungänderung pro Grad °C)
+            // und die Berechnungsgleichung:
+            // Temperatur = ((Spannungswert - V25)/Average_Slope) + 25) [in °C]
+            measured_val = (float) ((measured_val - 0.76f)/0.0025f) + 25.0f;
 
-    	// Restart
-    	messung_started = 0;
-    	green_LED_OFF;
+            sprintf(buffer,"TEMP = %2.3f °C \r\n",measured_val);
+            usart_2_print(buffer);
+			*/
     }
+
 }

@@ -515,7 +515,7 @@ void TIM7_IRQHandler(void)
 
 		if(tim7_counter>=0) tim7_counter++;
 	}
-	//BEEPER_IRQHandler();
+	BEEPER_IRQHandler();
 }
 
 //=========================================================================

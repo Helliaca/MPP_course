@@ -137,6 +137,8 @@ void init_tim7_irq_2();
 void init_tim3();
 void init_tim5(void);
 uint32_t get_random_int(uint32_t, uint32_t);
+void init_ADC1_EXVOL(void);
+void init_ADC1_EXVOL_BAT_TEMP(void);
 
 
 //=========================================================================

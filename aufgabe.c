@@ -889,3 +889,108 @@ uint32_t get_random_int(uint32_t min, uint32_t max)
     uint32_t result = min + (max-min)*((float) zahl/4294967295);
     return result;
 }
+
+//A8-2-XX fehlt hier
+
+
+//A9-1-1
+void init_ADC1_EXVOL(void) {
+
+    // Taktquelle einschalten für PA00 und ADC1
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1 , ENABLE);
+
+    //initialisiere PA00 als analoge Eingangsquelle zur Abnahme einer externen SPannung < 3V
+    GPIO_InitTypeDef GPIO_InitStructure;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+    //Lege Multi ADC Mode fest
+    //=== ADC1 Common configuration
+    ADC_CommonInitTypeDef ADC_CommonInitStructure;
+    ADC_CommonInitStructure.ADC_Mode = ADC_Mode_Independent;
+    ADC_CommonInitStructure.ADC_Prescaler = ADC_Prescaler_Div8; // 84MHz / 8 = 10.5 MHz ADC_CLK
+    //eine Konversion mit 3 Sample Cycles und 12 Conversion cycles => 10.5MHz/15 =0.7 MSamples/s
+    //Total Conversion time : (0.7 MSamples/s)^(-1) = 1,429 us
+    ADC_CommonInitStructure.ADC_DMAAccessMode = ADC_DMAAccessMode_Disabled;
+    ADC_CommonInitStructure.ADC_TwoSamplingDelay = ADC_TwoSamplingDelay_5Cycles; //not used only. only for interleaved dual/triple mode
+    ADC_CommonInit(&ADC_CommonInitStructure);
+
+    //Konfiguriere ADC1
+    //=== ADC1 Structure Init
+    ADC_InitTypeDef ADC_InitStructure;
+    ADC_InitStructure.ADC_Resolution =  ADC_Resolution_12b;
+    ADC_InitStructure.ADC_ScanConvMode = DISABLE; //Unterschied zu COntinous?
+    ADC_InitStructure.ADC_ContinuousConvMode = DISABLE;
+    ADC_InitStructure.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_None; //kein Trigger für Polling
+    ADC_InitStructure.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T1_CC1; //nur für externe Trigger
+    ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;
+    ADC_InitStructure.ADC_NbrOfConversion = 1;
+    ADC_Init(ADC1, &ADC_InitStructure);
+
+    //konfiguriere Conversion Groups
+    //=== ADC1 Channel Config
+    ADC_RegularChannelConfig(ADC1,
+                            ADC_Channel_0,              // GPIOA_00,
+                            1,                         //???
+                            ADC_SampleTime_3Cycles     //
+                            );
+
+    //=== ADC1 Enable
+    ADC_Cmd(ADC1, ENABLE);
+
+}
+
+//A9-1-2
+void init_ADC1_EXVOL_BAT_TEMP(void) {
+
+    // Taktquelle einschalten für PA00 und ADC1
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1 , ENABLE);
+
+    //initialisiere PA00 als analoge Eingangsquelle zur Abnahme einer externen SPannun < 3V
+    GPIO_InitTypeDef GPIO_InitStructure;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+    //Lege Multi ADC Mode fest
+    //=== ADC1 Common configuration
+    ADC_CommonInitTypeDef ADC_CommonInitStructure;
+    ADC_CommonInitStructure.ADC_Mode = ADC_Mode_Independent;
+    ADC_CommonInitStructure.ADC_Prescaler = ADC_Prescaler_Div8; // 84MHz / 8 = 10.5 MHz ADC_CLK
+    //eine Konversion mit 3 Sample Cycles und 12 Conversion cycles => 10.5MHz/15 =0.7 MSamples/s
+    //Total Conversion time : (0.7 MSamples/s)^(-1) = 1,429 us
+    ADC_CommonInitStructure.ADC_DMAAccessMode = ADC_DMAAccessMode_Disabled;
+    ADC_CommonInitStructure.ADC_TwoSamplingDelay = ADC_TwoSamplingDelay_5Cycles; //not used only. only for interleaved dual/triple mode
+    ADC_CommonInit(&ADC_CommonInitStructure);
+
+    //Konfiguriere ADC1
+    //=== ADC1 Structure Init
+    ADC_InitTypeDef ADC_InitStructure;
+    ADC_InitStructure.ADC_Resolution =  ADC_Resolution_12b;
+    ADC_InitStructure.ADC_ScanConvMode = DISABLE; //Unterschied zu COntinous?
+    ADC_InitStructure.ADC_ContinuousConvMode = DISABLE;
+    ADC_InitStructure.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_None; //kein Trigger für Polling
+    ADC_InitStructure.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T1_CC1; //nur für externe Trigger
+    ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;
+    ADC_InitStructure.ADC_NbrOfConversion = 3;            //Anzahl der Konversionen in der Gruppe?
+    ADC_Init(ADC1, &ADC_InitStructure);
+
+    //konfiguriere Conversion Groups
+    //=== ADC1 Channel Config
+    ADC_RegularChannelConfig(ADC1, ADC_Channel_Vbat, 1, ADC_SampleTime_3Cycles);
+    ADC_RegularChannelConfig(ADC1, ADC_Channel_TempSensor, 1, ADC_SampleTime_480Cycles);
+    ADC_RegularChannelConfig(ADC1, ADC_Channel_0, 1, ADC_SampleTime_3Cycles);
+
+    //=== ADC1 Enable
+    ADC_Cmd(ADC1, ENABLE);
+    //Knopfbatterie einschalten
+    ADC_VBATCmd(ENABLE);
+    // Temperatursensor einschalten
+    ADC_TempSensorVrefintCmd(ENABLE);
+
+}
