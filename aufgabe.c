@@ -890,7 +890,98 @@ uint32_t get_random_int(uint32_t min, uint32_t max)
     return result;
 }
 
-//A8-2-XX fehlt hier
+//A8-2-2
+void init_servo() {
+	// Taktsystem für Port GPIOB freigeben
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
+
+	// Struktur anlegen
+	GPIO_InitTypeDef GPIO_InitStructure;
+	GPIO_StructInit(&GPIO_InitStructure);
+
+	// Struktur mit Konfiguration laden
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_DOWN;
+
+	// Konfiguration aus der Struktur in Register laden
+	GPIO_Init(GPIOB, &GPIO_InitStructure);
+
+	// Alternativ Nutzung auswählen
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource8, GPIO_AF_TIM10);
+
+	//...
+
+	// benötigte Variablen
+	uint16_t PWM_Periode = 42;              // Periodendauer
+	uint16_t PSC_Prescaler = 168;            // Prescaler
+	uint16_t PWM_Tastverhaeltnis_OC1 = 5;  // Tastverhältnis TIM10C1 in %
+	// Pulsbreiten werden berechnet
+	uint16_t PWM_Pulsbreite_OC1 = 0;
+
+	//...
+
+	// SystemCoreClock = 168000000 Hz
+	// CK_INT = SystemCoreClock / 2 = 84000000 Hz
+	// CK_CNT = 1000000 Hz entspricht einer Periodendauer 0.000001s
+	// PSC_Prescaler = CK_INT / CK_CNT = 84000000Hz / 1000000Hz = 84
+	PSC_Prescaler = 168;
+	// PWM_Periode einstellbar bei einem
+	// PSC_Prescaler von 84:    2   -> 0.000002s
+	//                      65535   -> 0.065535s
+	// PWM_Periode = PWM_Periodendauer / CK_CNT_Periodendauer
+	PWM_Periode = (uint16_t) (0.020f / 0.000001f); //Einheit von 0.02?
+	// PWM_Tastverhaeltnis_OC1 (1...100 in %)
+	//PWM_Pulsbreite_OC1 = (uint16_t) ( PWM_Periode * PWM_Tastverhaeltnis_OC1 / 100);// 800 2400
+	// t_CK_CNT = 1/100000MHz = 0.00001s
+	// t_Period = t_CK_CNT * TIM_Period = 0.00001s * 2000 = 0.02s
+	// ARR = t_Period / t_CK_CNT = 0.02s / 0.00001s = 2000
+	// t_Duty_Cycle = 10 % = 0.1
+	// CCRx = (uint16_t) ( ARR * 0.1f)
+
+	//...
+
+	// Freigabe des Taktsystems für den Timer TIM10
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM10, ENABLE);
+
+	// Anlegen der Struktur
+	TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
+
+	//Konfigurationsdaten in die Struktur schreiben
+	TIM_TimeBaseStructure.TIM_Prescaler = PSC_Prescaler -1;
+	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+	TIM_TimeBaseStructure.TIM_Period = PWM_Periode - 1; //ARR
+	TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+
+	// Konfugurationsdaten in die Register schreiben
+	TIM_TimeBaseInit(TIM10, &TIM_TimeBaseStructure);
+
+	// Anlegen der Struktur für den Output Channel
+	TIM_OCInitTypeDef  TIM_OCInitStructure;
+
+	// Konfigurationsdaten in die Strukrur
+	// für den Output Channel eintragen
+	TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
+	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
+	TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
+
+	TIM_OCInitStructure.TIM_Pulse = PWM_Pulsbreite_OC1; //CCR
+
+	// Konfigurationsdaten in die Register schreiben
+	TIM_OC1Init(TIM10, &TIM_OCInitStructure);   // OutputChannel 1
+
+	// Preload Register freigeben
+	TIM_OC1PreloadConfig(TIM10, TIM_OCPreload_Enable);
+
+	// Preload Register freigeben
+	TIM_ARRPreloadConfig(TIM10, ENABLE);
+
+	// Taktsignal für den Timer freigeben
+	TIM_Cmd(TIM10, ENABLE);
+	TIM10->CCR1 = 1000;
+}
 
 
 //A9-1-1

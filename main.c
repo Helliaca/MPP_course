@@ -40,15 +40,9 @@ int main ( void )
 
     init_usart_2();
     init_usart_2_irq();
-
-    init_BEEPER();
-    freq=-1;
-    //beep(200, 2000, 0);
+    init_servo();
 
     while(1) {
-    	while(freq < 0) {}
-    	beep(freq, 500, 0);
-    	freq = -1;
     }
 
 }

@@ -422,7 +422,22 @@ void USART2_IRQHandler(void)
 	{
 		char zeichen = (char)USART_ReceiveData(USART2);
 
+		//A8-2-2 --BEGIN
+		if(zeichen=='w') {
+			int wert = TIM10->CCR1 + 100;
+			if(wert<=2400 && wert>=800) {
+				TIM10->CCR1 = wert;
+			}
+		}
+		if(zeichen=='s') {
+			int wert = TIM10->CCR1 - 100;
+			if(wert<=2400 && wert>=800) {
+				TIM10->CCR1 = wert;
+			}
+		}
+
 		//A8-2-1 --BEGIN
+		/*
 		//Wahl der Frequenzen gemäss Blues-Pentatonik-Tonleiter mit Grundton c1
 		switch(zeichen) {
 		case 'a': { freq = 261; break; } //c1
@@ -433,6 +448,7 @@ void USART2_IRQHandler(void)
 		case 'h': { freq = 523; break; } //c2
 		}
 		//beep(freq, 250, 0);
+		 */
 		//A8-2-1 --END
 
 		//A8-1-4
