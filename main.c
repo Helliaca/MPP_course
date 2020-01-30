@@ -40,8 +40,6 @@ int main ( void )
 
     init_leds();
     init_usart_2();
-    init_ADC1_EXVOL();
-    //init_ADC1_EXVOL_BAT_TEMP();
 
     char buffer[50];
     float measured_val;
@@ -54,6 +52,7 @@ int main ( void )
             wait_mSek(1000); //Konversiondauer beträgt 3* 1.4us ist also vernachlässigbar
 
             //externe Spannung
+            init_ADC1_EXVOL();
             ADC_SoftwareStartConv(ADC1);
             while(ADC_GetFlagStatus(ADC1,ADC_FLAG_EOC)==RESET);
             digitalwert=ADC_GetConversionValue(ADC1);
@@ -66,8 +65,9 @@ int main ( void )
             sprintf(buffer,"EXT_VOLT = %1.6f V \r\n",measured_val);
             usart_2_print(buffer);
 
-            /*
+
             //Batteriespannung
+            init_ADC1_TEMP();
             ADC_SoftwareStartConv(ADC1);
             while(ADC_GetFlagStatus(ADC1,ADC_FLAG_EOC)==RESET);
             digitalwert=ADC_GetConversionValue(ADC1);
@@ -75,7 +75,9 @@ int main ( void )
             sprintf(buffer,"VBAT = %6.3f V\r\n",measured_val);
             usart_2_print(buffer);
 
+
             //Temperatursensor
+            init_ADC1_TEMP();
             ADC_SoftwareStartConv(ADC1);
             while(ADC_GetFlagStatus(ADC1,ADC_FLAG_EOC)==RESET);
 
@@ -91,7 +93,7 @@ int main ( void )
 
             sprintf(buffer,"TEMP = %2.3f °C \r\n",measured_val);
             usart_2_print(buffer);
-			*/
+
     }
 
 }
