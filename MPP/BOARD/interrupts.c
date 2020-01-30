@@ -422,10 +422,25 @@ void USART2_IRQHandler(void)
 	{
 		char zeichen = (char)USART_ReceiveData(USART2);
 
+		//A8-2-1 --BEGIN
+		//Wahl der Frequenzen gemäss Blues-Pentatonik-Tonleiter mit Grundton c1
+		switch(zeichen) {
+		case 'a': { freq = 261; break; } //c1
+		case 's': { freq = 311; break; } //dis1
+		case 'd': { freq = 349; break; } //f1
+		case 'f': { freq = 391; break; } //g1
+		case 'g': { freq = 466; break; } //ais1
+		case 'h': { freq = 523; break; } //c2
+		}
+		//beep(freq, 250, 0);
+		//A8-2-1 --END
+
 		//A8-1-4
+		/*
 		if(zeichen=='s') {
 			messung_started = 1;
 		}
+		*/
 		//Ende A8-1-4
 
 		/*
@@ -510,11 +525,12 @@ void TIM5_IRQHandler(void)
 //=========================================================================
 void TIM7_IRQHandler(void)
 {
+	/*
 	if (TIM_GetITStatus(TIM7, TIM_IT_Update) != RESET) {
 		TIM_ClearITPendingBit(TIM7, TIM_IT_Update);
 
 		if(tim7_counter>=0) tim7_counter++;
-	}
+	}*/
 	BEEPER_IRQHandler();
 }
 
