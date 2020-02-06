@@ -538,16 +538,24 @@ void TIM5_IRQHandler(void)
 		usart_2_print("\r\nWarning: Maximum time exceeded.");
 	}
 }
+
+const double  U_0 = 1;
+const double  U_b = 1.5;
+double voltage=0;
+uint16_t digital_value;
+int sine_index=0;
 //=========================================================================
 void TIM7_IRQHandler(void)
 {
-	/*
-	if (TIM_GetITStatus(TIM7, TIM_IT_Update) != RESET) {
-		TIM_ClearITPendingBit(TIM7, TIM_IT_Update);
-
-		if(tim7_counter>=0) tim7_counter++;
-	}*/
-	BEEPER_IRQHandler();
+    if (TIM_GetITStatus(TIM7, TIM_IT_Update) != RESET) {
+        TIM_ClearITPendingBit(TIM7, TIM_IT_Update);
+            sine_index %= 100;
+            voltage = U_0 * sine_values[sine_index] + U_b;
+            digital_value = (uint16_t) round(voltage / 3.3 * 4096);
+            DAC_SetChannel1Data(DAC_Align_12b_R, digital_value);
+            sine_index++;
+    }
+    //BEEPER_IRQHandler();
 }
 
 //=========================================================================

@@ -1120,4 +1120,53 @@ void init_ADC1_TEMP(void) {
     ADC_TempSensorVrefintCmd(ENABLE);
 }
 
+//A10-1-1
+void init_DAC_sinewave(void) {
+    //DAC und GPIO Taktquelle einschalten
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_DAC, ENABLE);
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM7,ENABLE);
+
+    // Konfiguration der Interruptcontrollers
+    NVIC_InitTypeDef NVIC_InitStructure;
+    NVIC_InitStructure.NVIC_IRQChannel = TIM7_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVIC_InitStructure);
+
+    // Initialisierung und freigabe des Timers
+    TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+    TIM_TimeBaseStructure.TIM_Prescaler = 8400 - 1;  // 0.100ms = 8400 * 1/84000000Hz   ????
+    TIM_TimeBaseStructure.TIM_Period = 2-1;    // 20ms = 20 * 0.1ms   ?????
+    TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+    TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+    TIM_TimeBaseInit(TIM7, &TIM_TimeBaseStructure);
+    TIM_SelectOutputTrigger(TIM7, TIM_TRGOSource_Update);
+    TIM_ITConfig(TIM7, TIM_IT_Update, ENABLE);   // TIM7 Interrupt erlauben
+    TIM_Cmd(TIM7, ENABLE);
+
+    // GPIO initialisieren
+    GPIO_InitTypeDef GPIO_InitStructure;
+    GPIO_StructInit(&GPIO_InitStructure);
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+    // DAC initialisieren mit Timer7 als Triggerquelle
+    DAC_InitTypeDef DAC_InitStructure;
+    DAC_InitStructure.DAC_Trigger = DAC_Trigger_T7_TRGO;
+    DAC_InitStructure.DAC_WaveGeneration = DAC_WaveGeneration_None;
+    DAC_InitStructure.DAC_LFSRUnmask_TriangleAmplitude = DAC_LFSRUnmask_Bit0;
+    DAC_InitStructure.DAC_OutputBuffer = DAC_OutputBuffer_Disable;
+    DAC_Init(DAC_Channel_1, &DAC_InitStructure);
+
+    // DAC freigeben
+    DAC_Cmd(DAC_Channel_1, ENABLE);
+}
+
+//A 10-1-2
+void init_ADC_EXVOL_TIM(void) {}
+
 

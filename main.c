@@ -36,13 +36,31 @@ int main ( void )
     // Start des Betriebssystems CoOS
     //CoStartOS ();
 
-	// Beispiel für die Loesung einer Aufgabe
+    // Beispiel für die Loesung einer Aufgabe
 
-    init_usart_2();
-    init_usart_2_irq();
-    init_servo();
 
+
+    /*
+     * Die Sinus-Funktion soll
+     *  * 1V   = U_0 Amplitude,
+     *  * 1.5V = U_b Offset,
+     *  * 50Hz = freq Frequenz
+     *  besitzen. Bei einer Referenzspannung U_ref = 3.3V und einer 12 Bit Auflösung:
+     *  * U_0 * 4096 / U_ref = 1241,21212121 ~ 1241 Digitalwert
+     *  * U_b * 4096 / U_ref = 1861,81818181 ~ 1862 Digitalwert
+     *  * 1/freq = 0,02s = period
+     *
+     *  Damit die softwareseitig laufende Sinus-Generator mit der richtigen Frequenz
+     *  die Spannung ausgibt, muss das Value
+     */
+    int i=0;
+    for(i=0; i<100; i++) {
+        sine_values[i] = sin(2 * M_PI * i / 100);
+    }
+
+    init_DAC_sinewave();
     while(1) {
+
     }
 
 }

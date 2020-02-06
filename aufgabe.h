@@ -141,6 +141,7 @@ void init_servo(void);
 void init_ADC1_EXVOL(void);
 void init_ADC1_BAT(void);
 void init_ADC1_TEMP(void);
-
+void init_DAC_sinewave(void);
+void init_ADC_EXVOL_TIM(void);
 //=========================================================================
 #endif
