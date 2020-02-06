@@ -1,5 +1,7 @@
 #include "main.h"
 
+//#define zf 100
+
 int main ( void )
 {
     // Initialisierung des Systems und des Clocksystems
@@ -38,27 +40,27 @@ int main ( void )
 
     // Beispiel für die Loesung einer Aufgabe
 
+    init_ADC_EXVOL_TIM2();
+    init_DAC_MOV_AVG();
+    init_usart_2();
 
+    //Die nachfolgende Variable zeitfenster gibt ein Vielfaches von 100us an.
+    //D.h. die Anzahl an ADC-Wandlungen bevor gemittlet wird.
+    zeitfenster = 100;
 
     /*
-     * Die Sinus-Funktion soll
-     *  * 1V   = U_0 Amplitude,
-     *  * 1.5V = U_b Offset,
-     *  * 50Hz = freq Frequenz
-     *  besitzen. Bei einer Referenzspannung U_ref = 3.3V und einer 12 Bit Auflösung:
-     *  * U_0 * 4096 / U_ref = 1241,21212121 ~ 1241 Digitalwert
-     *  * U_b * 4096 / U_ref = 1861,81818181 ~ 1862 Digitalwert
-     *  * 1/freq = 0,02s = period
+     * Timer TIM2 wird konfiguriert, um alle 100us ein UpdateEvent an ADC1 zu senden.
+     * ADC1 tastet den angelegten Spannungswert am PIN PA0 ab. Der ADC löst dann ein
+     * EndOFCOnversion (EOC) Interrupt aus, der in der ADC_IRQ_Handler Routine abgearbeitet
+     * wird. Hier drin wird der abgetastete Spannungswert in den Ringbuffer Mittelwert_buffer
+     * der Länge zeitfenster geschrieben. Daraufhin wird einml über alle Werte im Buffer
+     * gemittelt und der Wert in das Outputregister das DAC geschrieben. Der DAC gibt dann
+     * den Wert beim nächsten TIM2 TIck aus, da er als Triggerquelle auch den TIM2 hat.
      *
-     *  Damit die softwareseitig laufende Sinus-Generator mit der richtigen Frequenz
-     *  die Spannung ausgibt, muss das Value
+     * Gleichspannungsanteil 1V und Amplitude 0.5V
+     * Ergebnis: DAC Ausgabe pendelt sich (wegen Mittelwertsberechnung) nach etwas Zeit auf ca. 1V
      */
-    int i=0;
-    for(i=0; i<100; i++) {
-        sine_values[i] = sin(2 * M_PI * i / 100);
-    }
 
-    init_DAC_sinewave();
     while(1) {
 
     }

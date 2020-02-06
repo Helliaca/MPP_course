@@ -146,6 +146,8 @@ RTC_DateTypeDef  RTC_Date_IN;
 int tim7_counter;
 int messung_started;
 extern double sine_values[100];
+extern uint16_t mittelwert_buffer[100];
+extern int zeitfenster;
 
 //========== Funktionen
 void ring_in_seconds(int);

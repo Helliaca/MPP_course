@@ -681,7 +681,7 @@ void init_tim7_irq() {
 	TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
 
 	// TIM7 in der Struktur konfigurieren
-	TIM_TimeBaseStructure.TIM_Prescaler = 8400 - 1; // 100µs = 8400 * 1/84000000Hz  //Warum -1?
+	TIM_TimeBaseStructure.TIM_Prescaler = 8400 - 1; // 100µs = 8400 * 1/84000000Hz
 	TIM_TimeBaseStructure.TIM_Period = 10000 - 1;   // 1s = 10000 * 100µs
 	TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
@@ -1137,8 +1137,12 @@ void init_DAC_sinewave(void) {
 
     // Initialisierung und freigabe des Timers
     TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
-    TIM_TimeBaseStructure.TIM_Prescaler = 8400 - 1;  // 0.100ms = 8400 * 1/84000000Hz   ????
-    TIM_TimeBaseStructure.TIM_Period = 2-1;    // 20ms = 20 * 0.1ms   ?????
+    TIM_TimeBaseStructure.TIM_Prescaler = 8400 - 1;  // 0.1ms = 8400 * 1/84000000Hz
+    // Alle 0.2ms wird ein Spannungswert ausgegeben. Eine volle Sinusperiode wurde in 100 Werte
+    // zerlegt. Eine volle Sinusperiode dauert enstprechend 100 * 0.2ms = 20ms.
+    TIM_TimeBaseStructure.TIM_Period = 2-1;    // Alle 0.2ms = 2 * 0.1ms wird TIM7_IRQ_Handler aufgerufen
+    // Der Timer hat einem Max-Wert von 2 und wird immer auf 0 initialisiert. Beim Erreichen der 2 gibt
+    //es den INT.
     TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
     TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
     TIM_TimeBaseInit(TIM7, &TIM_TimeBaseStructure);
@@ -1167,6 +1171,107 @@ void init_DAC_sinewave(void) {
 }
 
 //A 10-1-2
-void init_ADC_EXVOL_TIM(void) {}
+void init_ADC_EXVOL_TIM2(void) {
+	//ADC1 deinitialisieren und ausschalten
+	ADC_DeInit();
 
+	// Taktquelle einschalten für PA00 und ADC1
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1 , ENABLE);
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2,ENABLE);
 
+	/* TIMER generiert nur TICK alle 100us, soll aber keine IRQ-Routine haben.
+	// Konfiguration der Interruptcontrollers
+	NVIC_InitTypeDef NVIC_InitStructure;
+	NVIC_InitStructure.NVIC_IRQChannel = TIM2_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
+	*/
+	// Initialisierung und freigabe des Timers
+	TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+	TIM_TimeBaseStructure.TIM_Prescaler = 8400 - 1;  // 100us = 8400 * 1/84000000Hz
+	TIM_TimeBaseStructure.TIM_Period = 1-1;    // 100us = 1 * 100us
+	TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+	TIM_TimeBaseInit(TIM2, &TIM_TimeBaseStructure);
+	TIM_SelectOutputTrigger(TIM2, TIM_TRGOSource_Update);
+	//TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE);   // TIM7 Interrupt erlauben
+	TIM_Cmd(TIM2, ENABLE);
+
+	//initialisiere PA00 als analoge Eingangsquelle zur Abnahme einer externen SPannung < 3V
+	GPIO_InitTypeDef GPIO_InitStructure;
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+	//Konfiguriere alle ADCs (nur ADC1 hier eingeschaltet) als interruptfähig
+	NVIC_InitTypeDef NVIC_InitStructure;
+	NVIC_InitStructure.NVIC_IRQChannel = ADC_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
+
+	//Lege Multi ADC Mode fest
+	//=== ADC1 Common configuration
+	ADC_CommonInitTypeDef ADC_CommonInitStructure;
+	ADC_CommonStructInit(&ADC_CommonInitStructure);
+	ADC_CommonInitStructure.ADC_Mode = ADC_Mode_Independent;
+	ADC_CommonInitStructure.ADC_Prescaler = ADC_Prescaler_Div8; // 84MHz / 8 = 10.5 MHz ADC_CLK
+	//eine Konversion mit 3 Sample Cycles und 12 Conversion cycles => 10.5MHz/15 =0.7 MSamples/s
+	//Total Conversion time : (0.7 MSamples/s)^(-1) = 1,429 us
+	ADC_CommonInitStructure.ADC_DMAAccessMode = ADC_DMAAccessMode_Disabled;
+	ADC_CommonInitStructure.ADC_TwoSamplingDelay = ADC_TwoSamplingDelay_5Cycles; //not used only. only for interleaved dual/triple mode
+	ADC_CommonInit(&ADC_CommonInitStructure);
+
+	//Konfiguriere ADC1 mit TIM2 als Tirggerquelle
+	//=== ADC1 Structure Init
+	ADC_InitTypeDef ADC_InitStructure;
+	ADC_StructInit(&ADC_InitStructure);
+	ADC_InitStructure.ADC_Resolution =  ADC_Resolution_12b;
+	ADC_InitStructure.ADC_ScanConvMode = DISABLE; //Unterschied zu COntinous?
+	ADC_InitStructure.ADC_ContinuousConvMode = DISABLE;
+	ADC_InitStructure.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_Rising; //Trigger durch ansteigende Flanke
+	ADC_InitStructure.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T2_TRGO; //Triggerquelle TIM2
+	ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;
+	ADC_InitStructure.ADC_NbrOfConversion = 1;
+	ADC_Init(ADC1, &ADC_InitStructure);
+
+	//konfiguriere Conversion Groups
+	//=== ADC1 Channel Config
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_0, 1, ADC_SampleTime_3Cycles);
+
+	// ADC1 EOC Interrupt freigeben
+	ADC_ITConfig(ADC1, ADC_IT_EOC, ENABLE); // Enable
+
+	//=== ADC1 Enable
+	ADC_Cmd(ADC1, ENABLE);
+}
+
+void init_DAC_MOV_AVG(void) {
+    //DAC und GPIO Taktquelle einschalten
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_DAC, ENABLE);
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+
+    // GPIO initialisieren
+    GPIO_InitTypeDef GPIO_InitStructure;
+    GPIO_StructInit(&GPIO_InitStructure);
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+    // DAC initialisieren mit Timer7 als Triggerquelle
+    DAC_InitTypeDef DAC_InitStructure;
+    DAC_InitStructure.DAC_Trigger = DAC_Trigger_T2_TRGO;
+    DAC_InitStructure.DAC_WaveGeneration = DAC_WaveGeneration_None;
+    DAC_InitStructure.DAC_LFSRUnmask_TriangleAmplitude = DAC_LFSRUnmask_Bit0;
+    DAC_InitStructure.DAC_OutputBuffer = DAC_OutputBuffer_Disable;
+    DAC_Init(DAC_Channel_1, &DAC_InitStructure);
+
+    // DAC freigeben
+    DAC_Cmd(DAC_Channel_1, ENABLE);
+}

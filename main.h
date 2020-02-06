@@ -108,6 +108,8 @@
 int32_t timer;
 int32_t blink_interval;
 double sine_values[100];
+uint16_t mittelwert_buffer[100];
+int zeitfenster;
 
 //=========================================================================
 // Funktionen

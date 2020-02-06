@@ -349,6 +349,7 @@ void RTC_Alarm_IRQHandler(void)
 }
 
 
+int k =0; // Index für Ringbuffer
 //=========================================================================
 void ADC_IRQHandler(void)
 {
@@ -356,7 +357,16 @@ void ADC_IRQHandler(void)
 	if(ADC_GetITStatus(ADC1, ADC_IT_EOC) == SET)
 		{
 			ADC_ClearITPendingBit(ADC1, ADC_IT_EOC);
-			// ... Code für Ende Wandlung
+			uint16_t digitalwert=ADC_GetConversionValue(ADC1);
+			mittelwert_buffer[k] = digitalwert;
+			k = (k + 1) % zeitfenster;
+			int i; int sum=0;
+			for (i=0; i< zeitfenster; i++) {
+				sum += mittelwert_buffer[i];
+			}
+			int mov_avg = round(((float) sum )/ zeitfenster);
+			DAC_SetChannel1Data(DAC_Align_12b_R, mov_avg);
+
 		}
 	//===== ADC AWD interrupt
 	if(ADC_GetITStatus(ADC1, ADC_IT_AWD) == SET)
@@ -552,7 +562,6 @@ void TIM7_IRQHandler(void)
             sine_index %= 100;
             voltage = U_0 * sine_values[sine_index] + U_b;
             digital_value = (uint16_t) round(voltage / 3.3 * 4096);
-            DAC_SetChannel1Data(DAC_Align_12b_R, digital_value);
             sine_index++;
     }
     //BEEPER_IRQHandler();
