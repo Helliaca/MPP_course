@@ -149,6 +149,9 @@ extern double sine_values[100];
 extern uint16_t mittelwert_buffer[100];
 extern int zeitfenster;
 
+char usart2_rx_buffer[USART2_RX_BUFFERSIZE];
+char usart2_tx_buffer[USART2_TX_BUFFERSIZE];
+
 //========== Funktionen
 void ring_in_seconds(int);
 

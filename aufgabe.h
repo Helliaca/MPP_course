@@ -144,5 +144,7 @@ void init_ADC1_TEMP(void);
 void init_DAC_sinewave(void);
 void init_ADC_EXVOL_TIM2(void);
 void init_DAC_MOV_AVG(void);
+void init_DMA(void);
+void zeichenkette_senden(char* chars);
 //=========================================================================
 #endif

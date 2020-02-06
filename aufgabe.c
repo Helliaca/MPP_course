@@ -1275,3 +1275,82 @@ void init_DAC_MOV_AVG(void) {
     // DAC freigeben
     DAC_Cmd(DAC_Channel_1, ENABLE);
 }
+
+//A 11-1-1
+void init_DMA(void) {
+	// Initialisierungsstrukturen vorbereiten
+	DMA_InitTypeDef DMA_InitStructure;
+
+	// Clocksystem aktivieren
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1, ENABLE);
+
+	// Deinitialisiere die DMA
+	DMA_DeInit(DMA1_Stream6); //USART2_TX_DMA_STREAM
+
+	// Structure auf default setzen
+	DMA_StructInit(&DMA_InitStructure);
+
+	// Deaktiviere den DMA Transfer
+	DMA_Cmd(DMA1_Stream6, DISABLE);
+
+	// Lösche das DMA-Flag
+	DMA_ClearFlag(DMA1_Stream6, DMA_FLAG_TCIF6);
+
+	// Lege die Grundinitialisierung fest
+	DMA_InitStructure.DMA_BufferSize = 0;
+	DMA_InitStructure.DMA_FIFOMode = DMA_FIFOMode_Disable ;
+	DMA_InitStructure.DMA_FIFOThreshold = DMA_FIFOThreshold_1QuarterFull ;
+	DMA_InitStructure.DMA_MemoryBurst = DMA_MemoryBurst_Single ;
+	DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
+	DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
+	DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;
+	DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)(&(USART2->DR));
+	DMA_InitStructure.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
+	DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
+	DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
+	DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+	DMA_InitStructure.DMA_Priority = DMA_Priority_Low;
+	DMA_InitStructure.DMA_Channel = DMA_Channel_4;
+	DMA_InitStructure.DMA_DIR = DMA_DIR_MemoryToPeripheral;
+	DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)usart2_tx_buffer;
+	DMA_Init(DMA1_Stream6, &DMA_InitStructure);
+
+	// Für die USART die DMA Nutzung für Datensenden aktivieren
+	USART_DMACmd(USART2, USART_DMAReq_Tx, ENABLE);
+
+	// Für die USART den Interrupt für Datenempfangen aktivieren
+	USART_ITConfig(USART2, USART_IT_RXNE, ENABLE);
+	NVIC_EnableIRQ(USART2_IRQn);
+
+	// USART aktivieren
+	USART_Cmd(USART2, ENABLE);
+}
+
+void zeichenkette_senden(char* chars)
+{
+    if (chars)
+    {
+        int length = strlen(chars);
+        if (length <= USART2_TX_BUFFERSIZE)
+        {
+            // Warte, bis der letzte Transfer abgeschlossen wurde
+            //while (usart2_running && DMA_GetFlagStatus(DMA1_Stream6, DMA_FLAG_TCIF6) == RESET) asm("");
+        	//while (DMA_GetFlagStatus(DMA1_Stream6, DMA_FLAG_TCIF6) == RESET) {}
+            DMA_ClearFlag(DMA1_Stream6, DMA_FLAG_TCIF6);
+
+            // Die USART ist aktiv
+           // usart2_running = 1;
+
+            // Kopiere die Zeichenkette in den TX-Puffer
+            strcpy(usart2_tx_buffer, chars);
+
+            // Gebe die Paketlänge an (Verschachtelt, damit nur eine Berechnung notwendig ist)
+            DMA_SetCurrDataCounter(DMA1_Stream6, (unsigned short)length);
+
+            // Aktiviere den DMA Transfer
+            DMA_Cmd(DMA1_Stream6, ENABLE);
+        }
+    }
+}
+
+

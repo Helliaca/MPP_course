@@ -1,7 +1,5 @@
 #include "main.h"
 
-//#define zf 100
-
 int main ( void )
 {
     // Initialisierung des Systems und des Clocksystems
@@ -40,26 +38,9 @@ int main ( void )
 
     // Beispiel für die Loesung einer Aufgabe
 
-    init_ADC_EXVOL_TIM2();
-    init_DAC_MOV_AVG();
     init_usart_2();
-
-    //Die nachfolgende Variable zeitfenster gibt ein Vielfaches von 100us an.
-    //D.h. die Anzahl an ADC-Wandlungen bevor gemittlet wird.
-    zeitfenster = 100;
-
-    /*
-     * Timer TIM2 wird konfiguriert, um alle 100us ein UpdateEvent an ADC1 zu senden.
-     * ADC1 tastet den angelegten Spannungswert am PIN PA0 ab. Der ADC löst dann ein
-     * EndOFCOnversion (EOC) Interrupt aus, der in der ADC_IRQ_Handler Routine abgearbeitet
-     * wird. Hier drin wird der abgetastete Spannungswert in den Ringbuffer Mittelwert_buffer
-     * der Länge zeitfenster geschrieben. Daraufhin wird einml über alle Werte im Buffer
-     * gemittelt und der Wert in das Outputregister das DAC geschrieben. Der DAC gibt dann
-     * den Wert beim nächsten TIM2 TIck aus, da er als Triggerquelle auch den TIM2 hat.
-     *
-     * Gleichspannungsanteil 1V und Amplitude 0.5V
-     * Ergebnis: DAC Ausgabe pendelt sich (wegen Mittelwertsberechnung) nach etwas Zeit auf ca. 1V
-     */
+    init_usart_2_irq();
+    init_DMA();
 
     while(1) {
 

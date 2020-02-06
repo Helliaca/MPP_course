@@ -421,8 +421,6 @@ void process(char* data) {
 	}
 }
 
-char usart2_rx_buffer[PUFFER_SIZE] = {0};
-char usart2_tx_buffer[PUFFER_SIZE] = {0};
 int str_len = 0;
 //=========================================================================
 void USART2_IRQHandler(void)
@@ -432,6 +430,31 @@ void USART2_IRQHandler(void)
 	{
 		char zeichen = (char)USART_ReceiveData(USART2);
 
+		//A11-1-1 --BEGIN
+		//while(DMA_GetFlagStatus(DMA1_Stream6, DMA_FLAG_TCIF6) == SET) {}
+
+		static int j = 0;
+		if (zeichen=='\r') {
+			// eine terminierende null wird am ende der zeichenkette eingefügt
+			usart2_rx_buffer[j] = 0x00 ;
+			// die empfangene Zeichenkette wird in einen globalen Puffer kopiert
+			//strcpy(storage_buffer,usart2_rx_buffer);
+			//setzt alle werte in usaert2_rx_buffer auf 0
+			//memset(usart2_rx_buffer,0x00,sizeof(usart2_rx_buffer));
+			j=0;
+
+			/*Zeichenkette senden */
+			//usart_2_print(usart2_rx_buffer);
+			zeichenkette_senden(usart2_rx_buffer);
+		}
+		else {
+			usart2_rx_buffer[j] = zeichen;
+			j++;
+			if (j >= sizeof(usart2_rx_buffer)) { j = 0; }
+		}
+		//A11-1-1 --END
+
+		/*
 		//A8-2-2 --BEGIN
 		if(zeichen=='w') {
 			int wert = TIM10->CCR1 + 100;
@@ -445,6 +468,8 @@ void USART2_IRQHandler(void)
 				TIM10->CCR1 = wert;
 			}
 		}
+		//A8-2-2 --END
+		 */
 
 		//A8-2-1 --BEGIN
 		/*
