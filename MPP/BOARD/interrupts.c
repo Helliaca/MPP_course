@@ -444,7 +444,7 @@ void USART2_IRQHandler(void)
 			j=0;
 
 			/*Zeichenkette senden */
-			//usart_2_print(usart2_rx_buffer);
+			usart_2_print("\r\n"); //Für saubere ausgabe
 			zeichenkette_senden(usart2_rx_buffer);
 		}
 		else {

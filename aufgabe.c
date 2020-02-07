@@ -1342,7 +1342,8 @@ void zeichenkette_senden(char* chars)
            // usart2_running = 1;
 
             // Kopiere die Zeichenkette in den TX-Puffer
-            strcpy(usart2_tx_buffer, chars);
+            sprintf(usart2_tx_buffer, "%s\r\n", chars);
+            //strcpy(usart2_tx_buffer, chars);
 
             // Gebe die Paketlänge an (Verschachtelt, damit nur eine Berechnung notwendig ist)
             DMA_SetCurrDataCounter(DMA1_Stream6, (unsigned short)length);
