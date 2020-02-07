@@ -128,8 +128,8 @@
 
 //========== Macros
 
-#define USART2_TX_BUFFERSIZE 1024
-#define USART2_RX_BUFFERSIZE 1024
+#define USART2_TX_BUFFERSIZE_L 2048
+#define USART2_RX_BUFFERSIZE_L 2048
 
 #define uart_send usart2_send
 
@@ -149,8 +149,11 @@ extern double sine_values[100];
 extern uint16_t mittelwert_buffer[100];
 extern int zeitfenster;
 
-char usart2_rx_buffer[USART2_RX_BUFFERSIZE];
-char usart2_tx_buffer[USART2_TX_BUFFERSIZE];
+char usart_2_rx_buffer[USART2_RX_BUFFERSIZE_L];
+char usart_2_tx_buffer[USART2_TX_BUFFERSIZE_L];
+char storage_buffer[USART2_TX_BUFFERSIZE_L];
+
+int dma_running;
 
 //========== Funktionen
 void ring_in_seconds(int);

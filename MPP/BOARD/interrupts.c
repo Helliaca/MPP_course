@@ -431,26 +431,28 @@ void USART2_IRQHandler(void)
 		char zeichen = (char)USART_ReceiveData(USART2);
 
 		//A11-1-1 --BEGIN
-		//while(DMA_GetFlagStatus(DMA1_Stream6, DMA_FLAG_TCIF6) == SET) {}
-
 		static int j = 0;
 		if (zeichen=='\r') {
-			// eine terminierende null wird am ende der zeichenkette eingefügt
-			usart2_rx_buffer[j] = 0x00 ;
+			usart_2_rx_buffer[j] = '\r';
+			usart_2_rx_buffer[j+1] = '\n';
+			usart_2_rx_buffer[j+2] = 0x00 ;
+
 			// die empfangene Zeichenkette wird in einen globalen Puffer kopiert
-			//strcpy(storage_buffer,usart2_rx_buffer);
+			//strcpy(storage_buffer, usart_2_rx_buffer);
 			//setzt alle werte in usaert2_rx_buffer auf 0
-			//memset(usart2_rx_buffer,0x00,sizeof(usart2_rx_buffer));
 			j=0;
 
 			/*Zeichenkette senden */
-			usart_2_print("\r\n"); //Für saubere ausgabe
-			zeichenkette_senden(usart2_rx_buffer);
+			zeichenkette_senden(usart_2_rx_buffer);
+			memset(usart_2_rx_buffer,0x00,sizeof(usart_2_rx_buffer));
 		}
 		else {
-			usart2_rx_buffer[j] = zeichen;
+			usart_2_rx_buffer[j] = zeichen;
 			j++;
-			if (j >= sizeof(usart2_rx_buffer)) { j = 0; }
+			if (j >= sizeof(usart_2_rx_buffer)) {
+				//usart_2_print("ERROR: rx buffer overflow");
+				j = 0;
+			}
 		}
 		//A11-1-1 --END
 
@@ -539,6 +541,20 @@ void DMA2_Stream6_IRQHandler(void)
 {
 	//===== DMA2_Stream6
 	//DMA2_Stream6_IRQ();
+}
+
+//=========================================================================
+void DMA1_Stream6_IRQHandler(void)
+{
+
+	// ist der DMA Stream komplett?
+	if (DMA_GetITStatus(DMA1_Stream6, DMA_IT_TCIF6))
+	{
+		dma_running = 0;
+		// dann wird Transfer Complete interrupt pending bit zurückgesetzt
+		DMA_ClearITPendingBit(DMA1_Stream6, DMA_IT_TCIF6);
+		//DMA_ClearFlag(DMA1_Stream6, DMA_FLAG_TCIF6);
+	}
 }
 
 //=========================================================================

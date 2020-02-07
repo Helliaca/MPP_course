@@ -1278,6 +1278,19 @@ void init_DAC_MOV_AVG(void) {
 
 //A 11-1-1
 void init_DMA(void) {
+	// Priority Group konfigurieren
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+
+	// NVIC Register Struct anlegen
+	NVIC_InitTypeDef NVIC_InitStructure;
+
+	// DMA2 Stream6 Interrupt konfigurieren
+	NVIC_InitStructure.NVIC_IRQChannel = DMA1_Stream6_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
+
 	// Initialisierungsstrukturen vorbereiten
 	DMA_InitTypeDef DMA_InitStructure;
 
@@ -1312,18 +1325,14 @@ void init_DMA(void) {
 	DMA_InitStructure.DMA_Priority = DMA_Priority_Low;
 	DMA_InitStructure.DMA_Channel = DMA_Channel_4;
 	DMA_InitStructure.DMA_DIR = DMA_DIR_MemoryToPeripheral;
-	DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)usart2_tx_buffer;
+	DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)storage_buffer;
 	DMA_Init(DMA1_Stream6, &DMA_InitStructure);
 
 	// Für die USART die DMA Nutzung für Datensenden aktivieren
 	USART_DMACmd(USART2, USART_DMAReq_Tx, ENABLE);
 
-	// Für die USART den Interrupt für Datenempfangen aktivieren
-	USART_ITConfig(USART2, USART_IT_RXNE, ENABLE);
-	NVIC_EnableIRQ(USART2_IRQn);
-
-	// USART aktivieren
-	USART_Cmd(USART2, ENABLE);
+	// DMA Stream Interrupt für Transfer Complete freigeben
+	DMA_ITConfig(DMA1_Stream6, DMA_IT_TC, ENABLE);
 }
 
 void zeichenkette_senden(char* chars)
@@ -1334,22 +1343,25 @@ void zeichenkette_senden(char* chars)
         if (length <= USART2_TX_BUFFERSIZE)
         {
             // Warte, bis der letzte Transfer abgeschlossen wurde
-            //while (usart2_running && DMA_GetFlagStatus(DMA1_Stream6, DMA_FLAG_TCIF6) == RESET) asm("");
+            while (dma_running && DMA_GetFlagStatus(DMA1_Stream6, DMA_FLAG_TCIF6) == RESET) {}
         	//while (DMA_GetFlagStatus(DMA1_Stream6, DMA_FLAG_TCIF6) == RESET) {}
             DMA_ClearFlag(DMA1_Stream6, DMA_FLAG_TCIF6);
+        	//while (dma_running) {}
 
             // Die USART ist aktiv
-           // usart2_running = 1;
+           dma_running = 1;
 
             // Kopiere die Zeichenkette in den TX-Puffer
-            sprintf(usart2_tx_buffer, "%s\r\n", chars);
-            //strcpy(usart2_tx_buffer, chars);
+			strcpy(storage_buffer, chars);
 
             // Gebe die Paketlänge an (Verschachtelt, damit nur eine Berechnung notwendig ist)
             DMA_SetCurrDataCounter(DMA1_Stream6, (unsigned short)length);
 
             // Aktiviere den DMA Transfer
             DMA_Cmd(DMA1_Stream6, ENABLE);
+        }
+        else {
+        	//usart_2_print("ERROR: Transmission buffer too small.");
         }
     }
 }

@@ -41,6 +41,7 @@ int main ( void )
     init_usart_2();
     init_usart_2_irq();
     init_DMA();
+    dma_running = 0;
 
     while(1) {
 
