@@ -151,5 +151,6 @@ void init_uwb();
 void textMessageHandler_r(unsigned short sender, unsigned char* content, unsigned long long int rxtimestamp, double rxpower, float rxtemperature);
 void textMessageHandler_t(unsigned long long timestamp, float temperature, unsigned char error);
 void position_mov_avg(void);
+void wlan_scan();
 //=========================================================================
 #endif

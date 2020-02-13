@@ -1539,3 +1539,51 @@ void position_mov_avg(void)
 	r1=r2=r3=r4=-1;
 
 }
+
+
+//A12-2
+void wlan_scan() {
+    int j = 0;                              // Laufvariable
+    char out[100]={0};                       // Ausgabe puffer
+    int valid = 0;                          // Anzahl gefundener WLAN AP
+    Sl_WlanNetworkEntry_t netEntries[20];   // Liste für gefundene WLAN AP
+    int RetVal = -1;                        // Error Code
+    _u32 interval = 1;                      // 1 Sekunden Scannen
+
+    // WLAN Tranceiver starten
+    RetVal = sl_Start(NULL, NULL, NULL);
+
+    // WLAN Scan einschalten
+    RetVal = sl_WlanPolicySet(SL_POLICY_SCAN , 1, (_u8 *)&interval, sizeof(interval));
+
+    // Netzwerksliste ermitteln
+    while (valid < 5)
+    {
+        valid = sl_WlanGetNetworkList(0, 20, &netEntries[0]);
+        wait_mSek(500);
+    }
+
+    // WLAN Transceiver stoppen
+    sl_Stop(100);
+
+    /*
+        Laufende Nummer
+        RSSI Wert
+        SSID
+        Verschlüsselungsart (Open, WEP, WPA, WPA2)
+     *
+     */
+
+    // Netzwerksliste ausgeben
+    for (j=0; j< valid; j++)
+    {
+
+        sprintf(out,"%2d | RSSI: %3d | SSID: %10s | SECTYPE: %4s\r\n",
+        		j,
+        		netEntries[j].rssi,
+        		netEntries[j].ssid,
+        		netEntries[j].sec_type);
+
+        usart_2_print(out);
+    }
+}

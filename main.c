@@ -16,12 +16,12 @@ int main ( void )
 
     // Initialisierung aller Portleitungen und Schnittstellen
     // Freigabe von Interrupten
-    // init_board();
+    init_board();
 
     // Start der RTC  falls diese noch
     // nicht initialisiert war wird
     // die RTC mit der LSE-Taktquelle aktiviert
-    start_RTC();
+    //start_RTC();
 
     // Anmeldung beim WLAN Access Point
     // SSID: MPP_IoT
@@ -40,20 +40,9 @@ int main ( void )
 
     init_usart_2();
 
-
-    // Initialisierung des DW1000 Transceivers
-    DW1000_init();
-    // DW1000 in den Deep Sleep versetzen um Strom zu sparen
-    dw1000_idle();
-    dw1000_entersleep();
-    //...
-    // Aufruf der Funktion zur Positionsbestimmung
-    // innerhalb der Funktion erfolgt nach der Messung
-    // die Ausgabe der Entfernungen über die Serielle Schnittstelle
+    wlan_scan();
 
     while(1) {
-    	wait_mSek(100);
-    	position_mov_avg();
     }
 
 }
