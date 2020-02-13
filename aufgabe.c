@@ -1459,7 +1459,7 @@ void init_DAC_sinewave_DMA(void) {
     DAC_Cmd(DAC_Channel_1, ENABLE);
 }
 
-//Aufgabe 12
+//A12-1-1
 void init_uwb() {
 	uwbranging_initialize();
 	uwbranging_registerTextMessageHandler(textMessageHandler_r);
@@ -1488,4 +1488,54 @@ void rangeMessageHandler_r(unsigned short remoteinstance, float range)
     usart_2_print(tmp);
 
     //mqtt_pub("hwp1/message", tmp);
+}
+
+//A12-1-2
+// Globale Variablen fuer die Entfernung von den vier Ankerpunkten
+
+float r1_mov_avg[10] = {0};
+float r2_mov_avg[10] = {0};
+float r3_mov_avg[10] = {0};
+float r4_mov_avg[10] = {0};
+
+float array_avg(float* array) {
+	int i;
+	float sum =0;
+	for(i=0; i<10;i++) { sum += array[i]; }
+	return (sum/10.0f);
+}
+
+void position_mov_avg(void)
+//=========================================================================
+{
+	static int i=0;
+	//
+	position();
+
+	r1_mov_avg[i] = r1;
+	r2_mov_avg[i] = r2;
+	r3_mov_avg[i] = r3;
+	r4_mov_avg[i] = r4;
+
+	i = (i+1)%10;
+
+	char data[100];
+	RTC_TimeTypeDef  RTC_Time_Aktuell;      //  Zeit
+	RTC_GetTime(RTC_Format_BIN, &RTC_Time_Aktuell);
+
+	sprintf(data,
+		"\r\nTIME: %.2d:%.2d:%.2d:%.2d \t DIST1=%.2f \t DIST2=%.2f \t DIST3=%.2f \t DIST4=%.2f",
+		RTC_Time_Aktuell.RTC_Hours,
+		RTC_Time_Aktuell.RTC_Minutes,
+		RTC_Time_Aktuell.RTC_Seconds,
+		RTC_Time_Aktuell.RTC_H12,
+		array_avg(r1_mov_avg),
+		array_avg(r2_mov_avg),
+		array_avg(r3_mov_avg),
+		array_avg(r4_mov_avg)
+	);
+
+	usart_2_print(data);
+	r1=r2=r3=r4=-1;
+
 }

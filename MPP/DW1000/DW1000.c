@@ -134,10 +134,11 @@ void position(void)
 
 	dw1000_entersleep();
 
+	/*
 	sprintf(temp,"%6.2f;%6.2f;%6.2f;%6.2f\r\n",r1,r2,r3,r4);
 	usart_2_print(temp);
-
 	r1=r2=r3=r4=-1;
+	*/
 }
 
 
