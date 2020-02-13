@@ -40,6 +40,7 @@ int main ( void )
     //DW1000_init();
 
     init_usart_2();
+    init_BEEPER();
 
     // Initialisierung des DW1000 Transceivers
     // und anmeldung der Eventhandler
@@ -57,10 +58,17 @@ int main ( void )
 
 
     while(1) {
-    	wait_mSek(1000);
+    	wait_mSek(500);
+
     	dw1000_idle();
 		dw1000_entersleep();
-    	distanz(20);
+    	float d = distanz(20);
+
+    	if(d>2.0f) {
+
+    		beep(80, 500, 0);
+
+    	}
     }
 
 }

@@ -73,7 +73,7 @@ void HandleByteMessageReceived(unsigned short sender, unsigned char* content, in
 
 //=========================================================================
 // ermittelt einmalig die Entfernung zu dem übergebenen Ankerknoten
-void distanz(unsigned int id)
+float distanz(unsigned int id)
 //=========================================================================
 {
 	knoten_id = id;
@@ -85,14 +85,14 @@ void distanz(unsigned int id)
 	ismeasuring = 1;
 
 	while (!uwbranging_startRanging(id))
-		{
-			uwbranging_tick();
-			ismeasuring = 1;
-		}
-		while(ismeasuring)
-		{
-			uwbranging_tick();
-		}
+	{
+		uwbranging_tick();
+		ismeasuring = 1;
+	}
+	while(ismeasuring)
+	{
+		uwbranging_tick();
+	}
 
 	dw1000_delay_mSek(4);
 
@@ -102,6 +102,8 @@ void distanz(unsigned int id)
 	usart_2_print(temp);
 
 	knoten_id = 0;
+
+	return r1;
 }
 
 

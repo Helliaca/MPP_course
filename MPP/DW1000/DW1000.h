@@ -132,7 +132,7 @@ void HandleByteMessageReceived(	unsigned short sender,
 								double rxpower,
 								float rxtemperature);
 
-void distanz(unsigned int id);
+float distanz(unsigned int id);
 void position(void);
 void lokalisieren(void);
 

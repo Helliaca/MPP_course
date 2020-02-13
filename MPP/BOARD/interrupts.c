@@ -599,6 +599,7 @@ int sine_index=0;
 //=========================================================================
 void TIM7_IRQHandler(void)
 {
+	/*
 	if (TIM_GetITStatus(TIM7, TIM_IT_Update) != RESET) {
 	        TIM_ClearITPendingBit(TIM7, TIM_IT_Update);
 
@@ -610,14 +611,15 @@ void TIM7_IRQHandler(void)
 	            sine_index++;
 	            */
 
-	        	/* A11-1-2 */
+	        	/* A11-1-2
 	        	// Gebe die Paketlänge an (Verschachtelt, damit nur eine Berechnung notwendig ist)
 	            DMA_SetCurrDataCounter(DMA1_Stream5, (unsigned short) 1);
 
 	            // Aktiviere den DMA Transfer
 	            DMA_Cmd(DMA1_Stream5, ENABLE);
 	    }
-    //BEEPER_IRQHandler();
+	*/
+    BEEPER_IRQHandler();
 }
 
 //=========================================================================
