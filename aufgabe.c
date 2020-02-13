@@ -1478,3 +1478,14 @@ void textMessageHandler_t(unsigned long long timestamp, float temperature, unsig
 {
     usart_2_print("Paket erfolgreich gesendet\r\n");
 }
+
+// Eventhandler für abgeschlossene Entfernungsmessungen
+void rangeMessageHandler_r(unsigned short remoteinstance, float range)
+{
+    char tmp[64];
+    sprintf(tmp, "Entfernung: %fm\r\n", range);
+    //sprintf(gtmp, "%f", range);
+    usart_2_print(tmp);
+
+    //mqtt_pub("hwp1/message", tmp);
+}

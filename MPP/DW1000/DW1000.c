@@ -26,7 +26,7 @@ void DW1000_init(void){
 // Eventhandler für abgeschlossene Sendeprozesse
 void HandleTransmission(unsigned long long timestamp, float temperature, unsigned char error)
 {
-	usart2_send("Paket erfolgreich gesendet\r\n");
+	usart_2_print("Paket erfolgreich gesendet\r\n");
 	uwb_send = 0;
 }
 
@@ -56,8 +56,8 @@ void HandleRangeReceived(unsigned short remoteinstance, float range)
 // Eventhandler für eingehende Textmitteilungen
 void HandleTextMessageReceived(unsigned short sender, unsigned char* content, unsigned long long int rxtimestamp, double rxpower, float rxtemperature)
 {
-	usart2_send("Textmitteilung: ");
-	usart2_send((char*)content); usart2_send("\r\n");
+	usart_2_print("Textmitteilung: ");
+	usart_2_print((char*)content); usart_2_print("\r\n");
 }
 
 
@@ -66,7 +66,7 @@ void HandleByteMessageReceived(unsigned short sender, unsigned char* content, in
 {
 	char tmp[64];
 	sprintf(tmp, "Bytearray-Paket mit %d Bytes empfangen \r\n", contentlength);
-	usart2_send(tmp);
+	usart_2_print(tmp);
 }
 
 
@@ -99,7 +99,7 @@ void distanz(unsigned int id)
 	dw1000_entersleep();
 
 	sprintf(temp,"Distanz zu Knoten %d ist %6.2f m\r\n",knoten_id, r1);
-	usart2_send(temp);
+	usart_2_print(temp);
 
 	knoten_id = 0;
 }
@@ -133,7 +133,7 @@ void position(void)
 	dw1000_entersleep();
 
 	sprintf(temp,"%6.2f;%6.2f;%6.2f;%6.2f\r\n",r1,r2,r3,r4);
-	usart2_send(temp);
+	usart_2_print(temp);
 
 	r1=r2=r3=r4=-1;
 }
@@ -213,7 +213,7 @@ void lokalisieren(void)
 		{
 			interval = systickcounter;
 			sprintf(temp,"%f;%f;%f;%f;%f;%f;%f;%f\r\n",quaternion.q0, quaternion.q1, quaternion.q2, quaternion.q3,r1,r2,r3,r4);
-			usart2_send(temp);
+			usart_2_print(temp);
 			sprintf(temp,"%f;%f;%f;%f;%f;%f;%f;%f",quaternion.q0, quaternion.q1, quaternion.q2, quaternion.q3,r1,r2,r3,r4);
 			mqtt_pub("hwp1/q",temp);
 		}

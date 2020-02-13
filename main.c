@@ -8,7 +8,7 @@ int main ( void )
     // SysTick initialisieren
     // jede Millisekunde erfolgt dann der Aufruf
     // des Handlers fuer den Interrupt SysTick_IRQn
-    //InitSysTick();
+    InitSysTick();
 
     // blink_interval wird win SysTickHandler verwendet und
     // spezifiziert das Blink-Intervall in ms. -1 entspricht "Nicht Blinken".
@@ -41,13 +41,26 @@ int main ( void )
 
     init_usart_2();
 
-    init_uwb();
+    // Initialisierung des DW1000 Transceivers
+    // und anmeldung der Eventhandler
+    DW1000_init();
+    // DW1000 in den Deep Sleep versetzen um Strom zu sparen
+    dw1000_idle();
+    dw1000_entersleep();
+    //...
+    // Aufruf der Funktion zur Distanzmessung
+    // dabei ist der Parameter ist die Knoten ID
+    // innerhalb der Funktion erfolgt die Ausgabe
+    // der gemessenen Distanz zum Knoten
+    // über die Serielle Schnittstelle
+    distanz(20);
 
 
     while(1) {
     	wait_mSek(1000);
-        uwbranging_sendTextMessage(20, (unsigned char*)"Hallo Welt", textMessageHandler_t);
-
+    	dw1000_idle();
+		dw1000_entersleep();
+    	distanz(20);
     }
 
 }
