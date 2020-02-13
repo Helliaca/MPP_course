@@ -110,7 +110,7 @@ int32_t blink_interval;
 double sine_values[100];
 uint16_t mittelwert_buffer[100];
 int zeitfenster;
-
+uint16_t digital_sine_value[100];
 //=========================================================================
 // Funktionen
 //=========================================================================

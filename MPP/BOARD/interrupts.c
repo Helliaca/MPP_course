@@ -589,22 +589,34 @@ void TIM5_IRQHandler(void)
 		usart_2_print("\r\nWarning: Maximum time exceeded.");
 	}
 }
-
+/*
 const double  U_0 = 1;
 const double  U_b = 1.5;
 double voltage=0;
 uint16_t digital_value;
 int sine_index=0;
+*/
 //=========================================================================
 void TIM7_IRQHandler(void)
 {
-    if (TIM_GetITStatus(TIM7, TIM_IT_Update) != RESET) {
-        TIM_ClearITPendingBit(TIM7, TIM_IT_Update);
-            sine_index %= 100;
-            voltage = U_0 * sine_values[sine_index] + U_b;
-            digital_value = (uint16_t) round(voltage / 3.3 * 4096);
-            sine_index++;
-    }
+	if (TIM_GetITStatus(TIM7, TIM_IT_Update) != RESET) {
+	        TIM_ClearITPendingBit(TIM7, TIM_IT_Update);
+
+	        	/* A10-1-2
+	        	sine_index %= 100;
+	            voltage = U_0 * sine_values[sine_index] + U_b;
+	            digital_value = (uint16_t) round(voltage / 3.3 * 4096);
+	            DAC_SetChannel1Data(DAC_Align_12b_R, digital_value);
+	            sine_index++;
+	            */
+
+	        	/* A11-1-2 */
+	        	// Gebe die Paketlänge an (Verschachtelt, damit nur eine Berechnung notwendig ist)
+	            DMA_SetCurrDataCounter(DMA1_Stream5, (unsigned short) 1);
+
+	            // Aktiviere den DMA Transfer
+	            DMA_Cmd(DMA1_Stream5, ENABLE);
+	    }
     //BEEPER_IRQHandler();
 }
 

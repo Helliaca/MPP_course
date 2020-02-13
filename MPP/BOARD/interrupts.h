@@ -155,6 +155,8 @@ char storage_buffer[USART2_TX_BUFFERSIZE_L];
 
 int dma_running;
 
+extern uint16_t digital_sine_value[100];
+
 //========== Funktionen
 void ring_in_seconds(int);
 

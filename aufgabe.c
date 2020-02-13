@@ -1366,4 +1366,95 @@ void zeichenkette_senden(char* chars)
     }
 }
 
+//A11-1-2
+void init_DAC_sinewave_DMA(void) {
+    //DAC und GPIO Taktquelle einschalten
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_DAC, ENABLE);
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM7,ENABLE);
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1, ENABLE);
 
+    // Konfiguration der Interruptcontrollers
+    NVIC_InitTypeDef NVIC_InitStructure;
+    NVIC_InitStructure.NVIC_IRQChannel = TIM7_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVIC_InitStructure);
+
+    // Initialisierung und freigabe des Timers
+    TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+    TIM_TimeBaseStructure.TIM_Prescaler = 8400 - 1;  // 0.1ms = 8400 * 1/84000000Hz
+    // Alle 0.2ms wird ein Spannungswert ausgegeben. Eine volle Sinusperiode wurde in 100 Werte
+    // zerlegt. Eine volle Sinusperiode dauert enstprechend 100 * 0.2ms = 20ms.
+    TIM_TimeBaseStructure.TIM_Period = 2-1;    // Alle 0.2ms = 2 * 0.1ms wird TIM7_IRQ_Handler aufgerufen
+    // Der Timer hat einem Max-Wert von 2 und wird immer auf 0 initialisiert. Beim Erreichen der 2 gibt
+    //es den INT.
+    TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+    TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+    TIM_TimeBaseInit(TIM7, &TIM_TimeBaseStructure);
+    TIM_SelectOutputTrigger(TIM7, TIM_TRGOSource_Update);
+    TIM_ITConfig(TIM7, TIM_IT_Update, ENABLE);   // TIM7 Interrupt erlauben
+    TIM_Cmd(TIM7, ENABLE);
+
+    //DMA konfigurieren
+    // Stream zurücksetzen
+    DMA_DeInit(DMA1_Stream5);
+    // Strukt anlegen
+    DMA_InitTypeDef DMA_InitStructure;
+    // DMA Kanal auswählen
+    DMA_InitStructure.DMA_Channel = DMA_Channel_7;
+    // Transferart Speicher zu Peripherie auswählen
+    DMA_InitStructure.DMA_DIR = DMA_DIR_MemoryToPeripheral;
+    // Startadresse des Datenpuffers übergeben
+    DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t) digital_sine_value;
+    // Datenpuffergröße entsprechend Datentyp Setzen
+    DMA_InitStructure.DMA_BufferSize = (uint16_t)(sizeof(digital_sine_value) / sizeof(digital_sine_value[0]));
+    // Adresse des Ausgaberegisters des DAC setzen
+    DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t) &DAC->DHR12R1;
+    // Bei Transfer die Adresse des DAC Registers nicht ändern
+    DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+    // Bei Transfer die Adresse im Datenpuffer erhöhen
+    DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
+    // Datengröße für einen Transfer festlegen
+    DMA_InitStructure.DMA_PeripheralDataSize = DMA_MemoryDataSize_HalfWord;
+    DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
+    // Transfer in einer Endlosschleife durchführen
+    DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;
+
+    DMA_InitStructure.DMA_Priority = DMA_Priority_High;
+    DMA_InitStructure.DMA_FIFOMode = DMA_FIFOMode_Disable;
+    DMA_InitStructure.DMA_FIFOThreshold = DMA_FIFOThreshold_Full;
+
+    // Einzeltransfer pro Trigger
+    DMA_InitStructure.DMA_MemoryBurst = DMA_MemoryBurst_Single;
+    DMA_InitStructure.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
+    // Konfiguration schreiben
+    DMA_Init(DMA1_Stream5, &DMA_InitStructure);
+    //
+    DMA1_Stream5->CR |= DMA_SxCR_PSIZE_0 ;
+    // DMA Freigeben
+    DMA_Cmd(DMA1_Stream5, ENABLE);
+
+    // GPIO initialisieren
+    GPIO_InitTypeDef GPIO_InitStructure;
+    GPIO_StructInit(&GPIO_InitStructure);
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+    // DAC initialisieren mit Timer7 als Triggerquelle
+    DAC_InitTypeDef DAC_InitStructure;
+    DAC_InitStructure.DAC_Trigger = DAC_Trigger_T7_TRGO;
+    DAC_InitStructure.DAC_WaveGeneration = DAC_WaveGeneration_None;
+    DAC_InitStructure.DAC_LFSRUnmask_TriangleAmplitude = DAC_LFSRUnmask_Bit0;
+    DAC_InitStructure.DAC_OutputBuffer = DAC_OutputBuffer_Disable;
+    DAC_Init(DAC_Channel_1, &DAC_InitStructure);
+
+    // DMA für DAC aktivieren
+    DAC_DMACmd(DAC_Channel_1, ENABLE);
+
+    // DAC freigeben
+    DAC_Cmd(DAC_Channel_1, ENABLE);
+}
