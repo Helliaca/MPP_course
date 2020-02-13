@@ -165,8 +165,30 @@ void init_Taster2_IRQ5(void)
 void TASTER2_IRQ(void)
 //=========================================================================
 {
+	//A12-1-1
+	dw1000_wakefromsleep();
+
+	RTC_TimeTypeDef  RTC_Time_Aktuell;      //  Zeit
+	unsigned char data[50] = {0};
+
+	RTC_GetTime(RTC_Format_BIN, &RTC_Time_Aktuell);
+	sprintf(data,
+	"\r\nTIME: %.2d:%.2d:%.2d:%.2d",
+	RTC_Time_Aktuell.RTC_Hours,
+	RTC_Time_Aktuell.RTC_Minutes,
+	RTC_Time_Aktuell.RTC_Seconds,
+	RTC_Time_Aktuell.RTC_H12
+	);
+
+	uwbranging_sendTextMessage(20, data, HandleTransmission);
+
+	dw1000_delay_mSek(4);
+
+	dw1000_entersleep();
+	//ENDE A12
+
 	//A8-1-4
-	reactiontime = TIM_GetCounter(TIM5);
+	//reactiontime = TIM_GetCounter(TIM5);
 	//ENDE A8-1-4
 
 	/*//A8-1-2

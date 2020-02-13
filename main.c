@@ -21,7 +21,7 @@ int main ( void )
     // Start der RTC  falls diese noch
     // nicht initialisiert war wird
     // die RTC mit der LSE-Taktquelle aktiviert
-    //start_RTC();
+    start_RTC();
 
     // Anmeldung beim WLAN Access Point
     // SSID: MPP_IoT
@@ -39,23 +39,15 @@ int main ( void )
     // Beispiel für die Loesung einer Aufgabe
     //DW1000_init();
 
+    init_tasten();
+    init_taste2_irq();
+
     init_usart_2();
     init_BEEPER();
 
     // Initialisierung des DW1000 Transceivers
     // und anmeldung der Eventhandler
     DW1000_init();
-    // DW1000 in den Deep Sleep versetzen um Strom zu sparen
-    dw1000_idle();
-    dw1000_entersleep();
-    //...
-    // Aufruf der Funktion zur Distanzmessung
-    // dabei ist der Parameter ist die Knoten ID
-    // innerhalb der Funktion erfolgt die Ausgabe
-    // der gemessenen Distanz zum Knoten
-    // über die Serielle Schnittstelle
-    distanz(20);
-
 
     while(1) {
     	wait_mSek(500);
@@ -65,9 +57,9 @@ int main ( void )
     	float d = distanz(20);
 
     	if(d>2.0f) {
-
+    		beep(200, 500, 0);
+    	} else {
     		beep(80, 500, 0);
-
     	}
     }
 
