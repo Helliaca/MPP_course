@@ -147,5 +147,9 @@ void init_DAC_MOV_AVG(void);
 void init_DMA(void);
 void zeichenkette_senden(char* chars);
 void init_DAC_sinewave_DMA(void);
+void init_uwb();
+void textMessageHandler_r(unsigned short sender, unsigned char* content, unsigned long long int rxtimestamp, double rxpower, float rxtemperature);
+void textMessageHandler_t(unsigned long long timestamp, float temperature, unsigned char error);
+
 //=========================================================================
 #endif

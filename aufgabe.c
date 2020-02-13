@@ -1458,3 +1458,23 @@ void init_DAC_sinewave_DMA(void) {
     // DAC freigeben
     DAC_Cmd(DAC_Channel_1, ENABLE);
 }
+
+//Aufgabe 12
+void init_uwb() {
+	uwbranging_initialize();
+	uwbranging_registerTextMessageHandler(textMessageHandler_r);
+}
+
+// Eventhandler für eingehende Textmitteilungen
+void textMessageHandler_r(unsigned short sender, unsigned char* content, unsigned long long int rxtimestamp, double rxpower, float rxtemperature)
+{
+    usart_2_print("Textmitteilung: ");
+    usart_2_print((char*)content);
+    usart_2_print("\r\n");
+}
+
+// Eventhandler für abgeschlossene Sendeprozesse
+void textMessageHandler_t(unsigned long long timestamp, float temperature, unsigned char error)
+{
+    usart_2_print("Paket erfolgreich gesendet\r\n");
+}

@@ -37,38 +37,16 @@ int main ( void )
     //CoStartOS ();
 
     // Beispiel für die Loesung einer Aufgabe
+    //DW1000_init();
 
-    /*
-     * Die Sinus-Funktion soll
-     *  * 1V   = U_0 Amplitude,
-     *  * 1.5V = U_b Offset,
-     *  * 50Hz = freq Frequenz
-     *  besitzen. Bei einer Referenzspannung U_ref = 3.3V und einer 12 Bit Auflösung:
-     *  * U_0 * 4096 / U_ref = 1241,21212121 ~ 1241 Digitalwert
-     *  * U_b * 4096 / U_ref = 1861,81818181 ~ 1862 Digitalwert
-     *  * 1/freq = 0,02s = period
-     *
-     *  Damit die softwareseitig laufende Sinus-Generator mit der richtigen Frequenz
-     *  die Spannung ausgibt, muss das Value
-     */
+    init_usart_2();
 
-    int i=0;
-    for(i=0; i<100; i++) {
-        sine_values[i] = sin(2 * M_PI * i / 100);
-    }
-    //Spannungsparamter für digitalisierte Sinuskurve
-    const double  U_0 = 1;
-    const double  U_b = 1.5;
-    double voltage=0;
+    init_uwb();
 
-    for(i=0; i<100; i++) {
-    	voltage = U_0 * sine_values[i] + U_b;
-    	digital_sine_value[i] = (uint16_t) round(voltage / 3.3 * 4096);
-    }
-
-    init_DAC_sinewave_DMA();
 
     while(1) {
+    	wait_mSek(1000);
+        uwbranging_sendTextMessage(20, (unsigned char*)"Hallo Welt", textMessageHandler_t);
 
     }
 
